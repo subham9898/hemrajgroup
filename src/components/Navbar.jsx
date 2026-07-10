@@ -1,0 +1,350 @@
+import React, { useEffect, useState } from 'react';
+import { Sun, Moon, Menu, X } from 'lucide-react';
+
+export default function Navbar({ currentSection, isDark, toggleTheme }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 900);
+
+  const leftItems = [
+    { label: 'HOME', target: 'home' },
+    { label: 'OUR STORY', target: 'story' },
+    { label: 'GALLERY', target: 'gallery' }
+  ];
+
+  const rightItems = [
+    { label: 'PRODUCTS', target: 'products' },
+    { label: 'IMPACT', target: 'dashboard' },
+    { label: 'CONTACT', target: 'contact' }
+  ];
+
+  const allItems = [...leftItems, ...rightItems];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 900);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const handleNavClick = (target) => {
+    setMobileMenuOpen(false);
+    const element = document.getElementById(target);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  if (isDesktop) {
+    // Desktop Symmetric Centered Header Navbar
+    return (
+      <nav
+        style={{
+          ...styles.nav,
+          ...(isScrolled ? styles.navScrolled : styles.navNormal)
+        }}
+        className="glass navbar-dock"
+      >
+        {/* Left Side: Home, Our Story */}
+        <div style={styles.navGroupLeft}>
+          {leftItems.map((item) => {
+            const isActive = currentSection === item.target;
+            return (
+              <span
+                key={item.target}
+                onClick={() => handleNavClick(item.target)}
+                style={{
+                  ...styles.navLink,
+                  color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+                  fontWeight: isActive ? '700' : '400'
+                }}
+                className={`nav-link-btn ${isActive ? 'active' : ''}`}
+              >
+                {item.label}
+                {isActive && <span style={styles.activeIndicator} className="indicator-dot"></span>}
+              </span>
+            );
+          })}
+        </div>
+
+        {/* Center Side: Logo and Branding */}
+        <div style={styles.navGroupCenter} onClick={() => handleNavClick('home')}>
+          <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={styles.logoImg} />
+          <div style={styles.brandTextContainer}>
+            <span style={styles.brandText}>HEMRAJ</span>
+            <span style={styles.brandSub}>ESTD. 1958</span>
+          </div>
+        </div>
+
+        {/* Right Side: Products, Impact, Contact & Theme Switcher */}
+        <div style={styles.navGroupRight}>
+          {rightItems.map((item) => {
+            const isActive = currentSection === item.target;
+            return (
+              <span
+                key={item.target}
+                onClick={() => handleNavClick(item.target)}
+                style={{
+                  ...styles.navLink,
+                  color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+                  fontWeight: isActive ? '700' : '400'
+                }}
+                className={`nav-link-btn ${isActive ? 'active' : ''}`}
+              >
+                {item.label}
+                {isActive && <span style={styles.activeIndicator} className="indicator-dot"></span>}
+              </span>
+            );
+          })}
+        </div>
+      </nav>
+    );
+  }
+
+  // Mobile Header Navbar
+  return (
+    <>
+      <nav style={styles.mobileNav} className="glass navbar-dock-mobile">
+        <div style={styles.brand} onClick={() => handleNavClick('home')}>
+          <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={{ height: '30px', borderRadius: '4px' }} />
+          <div style={styles.brandTextContainer}>
+            <span style={{ ...styles.brandText, fontSize: '0.95rem' }}>HEMRAJ</span>
+            <span style={{ ...styles.brandSub, fontSize: '0.55rem' }}>ESTD. 1958</span>
+          </div>
+        </div>
+
+        <div style={styles.actions}>
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.mobileBtn}>
+            {mobileMenuOpen ? (
+              <X size={20} color="var(--text-primary)" />
+            ) : (
+              <Menu size={20} color="var(--text-primary)" />
+            )}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div style={styles.mobileMenu} className="glass">
+          <ul style={styles.mobileNavList}>
+            {allItems.map((item) => (
+              <li key={item.target} style={styles.mobileNavItem}>
+                <span
+                  onClick={() => handleNavClick(item.target)}
+                  style={{
+                    ...styles.mobileNavLink,
+                    color: currentSection === item.target ? 'var(--accent-gold)' : 'var(--text-primary)',
+                    fontWeight: currentSection === item.target ? '600' : '400'
+                  }}
+                >
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+}
+
+const styles = {
+  // Desktop header style container
+  nav: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 'calc(100% - 64px)',
+    maxWidth: '1240px',
+    height: '68px',
+    zIndex: 1000,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 3rem',
+    borderRadius: '24px',
+    transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+    border: '1px solid var(--border-light)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)'
+  },
+  navScrolled: {
+    top: '12px',
+    height: '60px',
+    backgroundColor: 'rgba(15, 9, 5, 0.85)',
+    borderColor: 'rgba(197, 160, 89, 0.2)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+  },
+  navNormal: {
+    backgroundColor: 'rgba(250, 248, 245, 0.02)'
+  },
+
+  // 3-way layout sections
+  navGroupLeft: {
+    flex: '1 1 35%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2.2rem',
+    justifyContent: 'flex-start'
+  },
+  navGroupCenter: {
+    flex: '0 0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.8rem',
+    cursor: 'pointer',
+    justifyContent: 'center'
+  },
+  navGroupRight: {
+    flex: '1 1 35%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2.2rem',
+    justifyContent: 'flex-end'
+  },
+
+  // Branding
+  logoImg: {
+    height: '38px',
+    width: 'auto',
+    borderRadius: '4px',
+    transition: 'transform 0.3s ease'
+  },
+  brandTextContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    lineHeight: 1.15
+  },
+  brandText: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: '1.2rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    color: 'var(--accent-gold)'
+  },
+  brandSub: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: '0.7rem',
+    fontWeight: '500',
+    color: 'var(--text-secondary)',
+    letterSpacing: '0.05em'
+  },
+
+  // Link components
+  navLink: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: '0.85rem',
+    letterSpacing: '0.15em',
+    cursor: 'pointer',
+    position: 'relative',
+    transition: 'color 0.3s ease',
+    display: 'inline-flex',
+    alignItems: 'center',
+    height: '100%',
+    padding: '0.5rem 0'
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: '-4px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '4px',
+    height: '4px',
+    borderRadius: '50%',
+    backgroundColor: 'var(--accent-gold)'
+  },
+
+  // Switch button
+  actionBtn: {
+    background: 'none',
+    border: 'none',
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    backgroundColor: 'rgba(250, 248, 245, 0.03)',
+    border: '1px solid rgba(250, 248, 245, 0.05)',
+    transition: 'all 0.3s ease'
+  },
+
+  // Mobile view components
+  mobileNav: {
+    position: 'fixed',
+    top: '12px',
+    left: '12px',
+    right: '12px',
+    height: '56px',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 1.2rem',
+    borderRadius: '16px',
+    border: '1px solid var(--border-light)'
+  },
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    cursor: 'pointer'
+  },
+  actions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.8rem'
+  },
+  mobileBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  mobileMenu: {
+    position: 'fixed',
+    top: '76px',
+    left: '12px',
+    right: '12px',
+    zIndex: 999,
+    borderRadius: '20px',
+    padding: '1.5rem 2rem',
+    border: '1px solid var(--border-light)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
+  },
+  mobileNavList: {
+    listStyle: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.2rem',
+    padding: '0',
+    margin: '0'
+  },
+  mobileNavItem: {
+    width: '100%',
+    textAlign: 'center'
+  },
+  mobileNavLink: {
+    display: 'block',
+    fontSize: '0.9rem',
+    letterSpacing: '0.15em',
+    fontFamily: 'var(--font-sans)',
+    cursor: 'pointer',
+    padding: '0.4rem 0',
+    width: '100%'
+  }
+};
