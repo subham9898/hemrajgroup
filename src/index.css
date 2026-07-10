@@ -448,6 +448,32 @@ html, body {
   border-color: var(--accent-gold);
 }
 
+/* Dashboard Dark Section Text Color Override for Glass Cards */
+#dashboard .stat-card h4,
+#dashboard .stat-card p,
+#dashboard .glass h3,
+#dashboard .glass p {
+  color: #2E241E;
+}
+
+#dashboard .stat-card p {
+  color: #65564D;
+}
+
+#dashboard .glass p {
+  color: #65564D;
+}
+
+/* Ensure dial subtitle and labels are readable */
+#dashboard .glass span {
+  color: #65564D;
+}
+
+/* Ensure gold text remains visible */
+#dashboard .glass strong {
+  color: #2E241E;
+}
+
 @media (max-width: 900px) {
   .dashboard-grid {
     flex-direction: column;

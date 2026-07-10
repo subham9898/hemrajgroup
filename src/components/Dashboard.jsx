@@ -186,7 +186,7 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '1.5rem',
     fontWeight: '400',
-    color: 'var(--text-primary)',
+    color: '#2E241E',
     marginBottom: '2rem'
   },
   svgContainer: {
@@ -211,7 +211,7 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '3.2rem',
     fontWeight: '700',
-    color: 'var(--text-primary)',
+    color: '#2E241E',
     lineHeight: 1
   },
   dialSubLabel: {
@@ -220,14 +220,14 @@ const styles = {
     fontWeight: '700',
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    color: 'var(--text-secondary)',
+    color: '#65564D',
     marginTop: '4px'
   },
   dialCaption: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
     lineHeight: 1.6,
-    color: 'var(--text-secondary)'
+    color: '#65564D'
   },
   statsPanel: {
     flex: '1 1 0',
@@ -247,14 +247,14 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '2rem',
     fontWeight: '600',
-    color: 'var(--text-primary)',
+    color: '#2E241E',
     marginBottom: '0.3rem',
     lineHeight: 1
   },
   statLabel: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
-    color: 'var(--text-secondary)',
+    color: '#65564D',
     lineHeight: 1.4
   }
 };
