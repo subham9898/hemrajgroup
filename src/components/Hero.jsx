@@ -30,13 +30,13 @@ export default function Hero({ active }) {
           loop
           muted
           playsInline
-          poster="/assets/hero_field.jpg"
+          poster="/assets/story_bg.jpg"
           style={styles.backgroundVideo}
         >
           <source src="/assets/hemraj-hero.mp4" type="video/mp4" />
           {/* Fallback image */}
           <img
-            src="/assets/hero_field.jpg"
+            src="/assets/story_bg.jpg"
             alt="Golden grain field"
             style={styles.backgroundImage}
           />
@@ -93,11 +93,43 @@ export default function Hero({ active }) {
             ...styles.buttonContainer,
             opacity: reveal ? 1 : 0,
             transform: reveal ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 1s cubic-bezier(0.25, 1, 0.5, 1) 0.4s'
+            transition: 'all 1s cubic-bezier(0.25, 1, 0.5, 1) 0.4s',
+            gap: '1rem',
+            flexWrap: 'wrap'
           }}
         >
-          <button className="btn-primary" onClick={handleExploreClick}>
-            Explore Our Legacy
+          <a
+            href="#products"
+            className="btn-primary"
+            style={{ textDecoration: 'none' }}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            View Product Catalog
+          </a>
+          <button
+            onClick={handleExploreClick}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'transparent',
+              color: '#FAF8F5',
+              border: '1px solid rgba(250, 248, 245, 0.3)',
+              borderRadius: '0',
+              padding: '0.9rem 1.8rem',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              fontFamily: 'var(--font-sans)',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Our Heritage
             <ArrowDown size={16} />
           </button>
         </div>
@@ -164,12 +196,19 @@ const styles = {
   },
   eyebrow: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.85rem',
-    fontWeight: '600',
-    letterSpacing: '0.3em',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: 'var(--accent-gold)',
-    textShadow: '0 2px 10px rgba(0, 0, 0, 0.7)'
+    color: 'var(--accent-gold-text, #E5C380)',
+    backgroundColor: 'rgba(197, 160, 89, 0.22)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(197, 160, 89, 0.45)',
+    padding: '0.4rem 1.2rem',
+    borderRadius: '4px',
+    display: 'inline-block',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
   },
   title: {
     fontFamily: 'var(--font-serif)',

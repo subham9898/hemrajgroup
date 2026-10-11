@@ -50,10 +50,21 @@ export default function Dashboard({ active }) {
         <div className="dashboard-grid">
           {/* Circular Dial Column */}
           <div style={styles.dialCard} className="glass">
-            <h3 style={styles.dialTitle}>Indian DORB Export Share</h3>
+            <h3 id="export-dial-title" style={styles.dialTitle}>Indian DORB Export Share</h3>
             
             <div style={styles.svgContainer}>
-              <svg width="220" height="220" viewBox="0 0 220 220" style={styles.svg}>
+              <svg
+                width="220"
+                height="220"
+                viewBox="0 0 220 220"
+                style={styles.svg}
+                role="meter"
+                aria-valuenow={percent}
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-labelledby="export-dial-title"
+              >
+                <title>35% Indian DORB Export Share</title>
                 {/* Track circle */}
                 <circle
                   cx="110"
@@ -87,7 +98,7 @@ export default function Dashboard({ active }) {
             </div>
 
             <p style={styles.dialCaption}>
-              Controlled jointly by <strong>Hemraj Industries</strong> and M/s <strong>Radhashyam Industries</strong>, representing the top two exporting companies in India.
+              Controlled jointly by <strong>Hemraj Industries</strong> and M/s <strong>Radhashyam Industries</strong>, representing the top two exporting companies recognized by SEA (Solvent Extractors&apos; Association of India).
             </p>
           </div>
 
@@ -101,7 +112,7 @@ export default function Dashboard({ active }) {
                   <Award size={20} color="var(--accent-gold)" />
                 </div>
                 <h4 style={styles.statVal}>10+ Years</h4>
-                <p style={styles.statLabel}>Consecutive Top Exporter Award</p>
+                <p style={styles.statLabel}>SEA Top Exporter Award Recipient</p>
               </div>
 
               {/* Stat 2 */}
@@ -128,7 +139,7 @@ export default function Dashboard({ active }) {
                   <Globe size={20} color="var(--accent-gold)" />
                 </div>
                 <h4 style={styles.statVal}>12+ Countries</h4>
-                <p style={styles.statLabel}>Global Export Destinations</p>
+                <p style={styles.statLabel}>APEDA Accredited Global Destinations</p>
               </div>
 
             </div>
@@ -186,7 +197,7 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '1.5rem',
     fontWeight: '400',
-    color: '#2E241E',
+    color: 'var(--text-primary)',
     marginBottom: '2rem'
   },
   svgContainer: {
@@ -211,7 +222,7 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '3.2rem',
     fontWeight: '700',
-    color: '#2E241E',
+    color: 'var(--text-primary)',
     lineHeight: 1
   },
   dialSubLabel: {
@@ -220,14 +231,14 @@ const styles = {
     fontWeight: '700',
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    color: '#65564D',
+    color: 'var(--text-secondary)',
     marginTop: '4px'
   },
   dialCaption: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
     lineHeight: 1.6,
-    color: '#65564D'
+    color: 'var(--text-secondary)'
   },
   statsPanel: {
     flex: '1 1 0',
@@ -247,14 +258,14 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontSize: '2rem',
     fontWeight: '600',
-    color: '#2E241E',
+    color: 'var(--text-primary)',
     marginBottom: '0.3rem',
     lineHeight: 1
   },
   statLabel: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
-    color: '#65564D',
+    color: 'var(--text-secondary)',
     lineHeight: 1.4
   }
 };

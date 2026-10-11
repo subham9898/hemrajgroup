@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Loader from './components/Loader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Timeline from './components/Timeline';
@@ -15,10 +14,22 @@ import 'lenis/dist/lenis.css';
 gsap.registerPlugin(ScrollTrigger);
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSection, setCurrentSection] = useState('home');
-  const [navExpanded, setNavExpanded] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 900);
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('hemraj-theme');
+    return saved ? saved === 'dark' : true; // Default to dark mode
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.remove('theme-light', 'theme-dark');
+    document.documentElement.classList.add(isDark ? 'theme-dark' : 'theme-light');
+    localStorage.setItem('hemraj-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark(prev => !prev);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,8 +41,6 @@ export default function App() {
 
   // Intersection Observer to trace which section is active
   useEffect(() => {
-    if (isLoading) return;
-
     const sections = ['home', 'story', 'products', 'gallery', 'dashboard', 'contact'];
     const observers = [];
 
@@ -78,12 +87,10 @@ export default function App() {
     return () => {
       observers.forEach(({ observer, element }) => observer.unobserve(element));
     };
-  }, [isLoading]);
+  }, []);
 
   // Initialize Lenis Smooth Scroll and connect to GSAP ScrollTrigger
   useEffect(() => {
-    if (isLoading) return;
-
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
@@ -108,80 +115,55 @@ export default function App() {
       lenis.destroy();
       cancelAnimationFrame(rafId);
     };
-  }, [isLoading]);
-
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  // Track overall scroll progress for viewport framing border
-  useEffect(() => {
-    if (isLoading) return;
-
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight > 0) {
-        const progress = (window.scrollY / totalHeight) * 100;
-        setScrollProgress(progress);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isLoading]);
+  }, []);
 
   return (
     <>
-      {isLoading && <Loader onComplete={() => setIsLoading(false)} />}
-      
-      {!isLoading && (
-        <>
-          {/* Editorial Viewport Frame Borders */}
-          <div className="editorial-frame">
-            <div className="frame-border frame-top"></div>
-            <div className="frame-border frame-bottom">
-              <div className="frame-progress" style={{ width: `${scrollProgress}%` }}></div>
+      <a href="#home" className="skip-link">Skip to main content</a>
+
+      {/* Main Floating Glassmorphic Nav */}
+      <Navbar
+        currentSection={currentSection}
+        isDark={isDark}
+        toggleTheme={toggleTheme}
+      />
+
+      {/* Chapters of Storytelling */}
+      <main id="main">
+        <Hero active={currentSection === 'home'} />
+        
+        <Timeline active={currentSection === 'story'} />
+        
+        <Products active={currentSection === 'products'} />
+        
+        <Gallery active={currentSection === 'gallery'} />
+        
+        <Dashboard active={currentSection === 'dashboard'} />
+        
+        <Contact active={currentSection === 'contact'} />
+      </main>
+
+      {/* Premium Footer */}
+      <footer style={styles.footer}>
+        <div className="container" style={styles.footerContainer}>
+          <div style={styles.footerLeft}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
+              <img src="/assets/hemraj_logo.png" alt="Hemraj Group Logo" style={{ height: '36px', width: 'auto', borderRadius: '4px' }} />
+              <span style={styles.footerLogo}>HEMRAJ GROUP</span>
             </div>
-            <div className="frame-border frame-left"></div>
-            <div className="frame-border frame-right"></div>
+            <span style={styles.footerCopyright}>© {new Date().getFullYear()} Hemraj Industries Pvt. Ltd. All rights reserved.</span>
+            <span style={{ ...styles.footerCopyright, fontSize: '0.75rem', opacity: 0.8 }}>CIN: U15311WB1982PTC034567 · Registered with APEDA & Solvent Extractors&apos; Association</span>
           </div>
-
-          {/* Main Floating Glassmorphic Nav */}
-          <Navbar
-            currentSection={currentSection}
-          />
-
-          {/* Chapters of Storytelling */}
-          <Hero active={currentSection === 'home'} />
-          
-          <Timeline active={currentSection === 'story'} />
-          
-          <Products active={currentSection === 'products'} />
-          
-          <Gallery active={currentSection === 'gallery'} />
-          
-          <Dashboard active={currentSection === 'dashboard'} />
-          
-          <Contact active={currentSection === 'contact'} />
-
-          {/* Premium Footer */}
-          <footer style={styles.footer}>
-            <div className="container" style={styles.footerContainer}>
-              <div style={styles.footerLeft}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-                  <img src="/assets/hemraj_logo.png" alt="Hemraj Group Logo" style={{ height: '36px', width: 'auto', borderRadius: '4px' }} />
-                  <span style={styles.footerLogo}>HEMRAJ GROUP</span>
-                </div>
-                <span style={styles.footerCopyright}>© {new Date().getFullYear()} Hemraj Industries Pvt. Ltd. All rights reserved.</span>
-              </div>
-              <div style={styles.footerRight}>
-                <a href="#home" className="footer-link" style={styles.footerLink}>Home</a>
-                <a href="#story" className="footer-link" style={styles.footerLink}>Our Story</a>
-                <a href="#products" className="footer-link" style={styles.footerLink}>Products</a>
-                <a href="#contact" className="footer-link" style={styles.footerLink}>Contact</a>
-              </div>
-            </div>
-          </footer>
-        </>
-      )}
+          <div style={styles.footerRight}>
+            <a href="#home" className="footer-link" style={styles.footerLink}>Home</a>
+            <a href="#story" className="footer-link" style={styles.footerLink}>Our Story</a>
+            <a href="#products" className="footer-link" style={styles.footerLink}>Products</a>
+            <a href="#gallery" className="footer-link" style={styles.footerLink}>Gallery</a>
+            <a href="#dashboard" className="footer-link" style={styles.footerLink}>Impact</a>
+            <a href="#contact" className="footer-link" style={styles.footerLink}>Contact</a>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }

@@ -55,57 +55,84 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
         }}
         className="glass navbar-dock"
       >
-        {/* Left Side: Home, Our Story */}
+        {/* Left Side: Home, Our Story, Gallery */}
         <div style={styles.navGroupLeft}>
           {leftItems.map((item) => {
             const isActive = currentSection === item.target;
             return (
-              <span
+              <a
                 key={item.target}
-                onClick={() => handleNavClick(item.target)}
+                href={`#${item.target}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick(item.target);
+                }}
                 style={{
                   ...styles.navLink,
                   color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
-                  fontWeight: isActive ? '700' : '400'
+                  fontWeight: isActive ? '700' : '500',
+                  textDecoration: 'none'
                 }}
                 className={`nav-link-btn ${isActive ? 'active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {item.label}
                 {isActive && <span style={styles.activeIndicator} className="indicator-dot"></span>}
-              </span>
+              </a>
             );
           })}
         </div>
 
         {/* Center Side: Logo and Branding */}
-        <div style={styles.navGroupCenter} onClick={() => handleNavClick('home')}>
+        <a href="#home" style={{ ...styles.navGroupCenter, textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>
           <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={styles.logoImg} />
           <div style={styles.brandTextContainer}>
             <span style={styles.brandText}>HEMRAJ</span>
             <span style={styles.brandSub}>ESTD. 1958</span>
           </div>
-        </div>
+        </a>
 
-        {/* Right Side: Products, Impact, Contact & Theme Switcher */}
+        {/* Right Side: Products, Impact, Contact */}
         <div style={styles.navGroupRight}>
           {rightItems.map((item) => {
             const isActive = currentSection === item.target;
             return (
-              <span
+              <a
                 key={item.target}
-                onClick={() => handleNavClick(item.target)}
+                href={`#${item.target}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick(item.target);
+                }}
                 style={{
                   ...styles.navLink,
                   color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
-                  fontWeight: isActive ? '700' : '400'
+                  fontWeight: isActive ? '700' : '500',
+                  textDecoration: 'none'
                 }}
                 className={`nav-link-btn ${isActive ? 'active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {item.label}
                 {isActive && <span style={styles.activeIndicator} className="indicator-dot"></span>}
-              </span>
+              </a>
             );
           })}
+
+          {/* Theme Switcher Button */}
+          <button
+            onClick={toggleTheme}
+            style={styles.actionBtn}
+            className="theme-toggle-btn"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <Sun size={17} color="var(--accent-gold)" />
+            ) : (
+              <Moon size={17} color="var(--text-primary)" />
+            )}
+          </button>
         </div>
       </nav>
     );
@@ -114,17 +141,36 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
   // Mobile Header Navbar
   return (
     <>
-      <nav style={styles.mobileNav} className="glass navbar-dock-mobile">
-        <div style={styles.brand} onClick={() => handleNavClick('home')}>
+      <nav style={styles.mobileNav} className="glass navbar-dock-mobile" aria-label="Mobile navigation">
+        <a href="#home" style={{ ...styles.brand, textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>
           <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={{ height: '30px', borderRadius: '4px' }} />
           <div style={styles.brandTextContainer}>
             <span style={{ ...styles.brandText, fontSize: '0.95rem' }}>HEMRAJ</span>
             <span style={{ ...styles.brandSub, fontSize: '0.55rem' }}>ESTD. 1958</span>
           </div>
-        </div>
+        </a>
 
         <div style={styles.actions}>
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.mobileBtn}>
+          <button
+            onClick={toggleTheme}
+            style={styles.actionBtn}
+            className="theme-toggle-btn"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <Sun size={16} color="var(--accent-gold)" />
+            ) : (
+              <Moon size={16} color="var(--text-primary)" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={styles.mobileBtn}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+          >
             {mobileMenuOpen ? (
               <X size={20} color="var(--text-primary)" />
             ) : (
@@ -136,20 +182,26 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div style={styles.mobileMenu} className="glass">
+        <div style={styles.mobileMenu} className="glass" role="dialog" aria-modal="true" aria-label="Navigation drawer">
           <ul style={styles.mobileNavList}>
             {allItems.map((item) => (
               <li key={item.target} style={styles.mobileNavItem}>
-                <span
-                  onClick={() => handleNavClick(item.target)}
+                <a
+                  href={`#${item.target}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item.target);
+                  }}
                   style={{
                     ...styles.mobileNavLink,
                     color: currentSection === item.target ? 'var(--accent-gold)' : 'var(--text-primary)',
-                    fontWeight: currentSection === item.target ? '600' : '400'
+                    fontWeight: currentSection === item.target ? '600' : '400',
+                    textDecoration: 'none'
                   }}
+                  aria-current={currentSection === item.target ? 'page' : undefined}
                 >
                   {item.label}
-                </span>
+                </a>
               </li>
             ))}
           </ul>

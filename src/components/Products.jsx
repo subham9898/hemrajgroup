@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Eye } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Search, Eye, X, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -10,17 +10,27 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    // Only enable mouse tilt on non-touch devices with fine pointers
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setCanHover(mq.matches);
+    const handler = (e) => setCanHover(e.matches);
+    mq.addEventListener?.('change', handler);
+    return () => mq.removeEventListener?.('change', handler);
+  }, []);
 
   const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
+    if (!canHover || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     
-    // Calculate rotation angle (-10 to 10 degrees)
-    const maxTilt = 10;
+    // Calculate rotation angle (-8 to 8 degrees)
+    const maxTilt = 8;
     const rY = ((mouseX - width / 2) / (width / 2)) * maxTilt;
     const rX = -((mouseY - height / 2) / (height / 2)) * maxTilt;
     
@@ -28,21 +38,23 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
   };
 
   const handleMouseEnter = () => {
-    setIsHovered(true);
+    if (canHover) setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    setCoords({ x: 0, y: 0 });
+    if (canHover) {
+      setIsHovered(false);
+      setCoords({ x: 0, y: 0 });
+    }
   };
 
   const tiltStyle = {
     backgroundImage: `url(${bgImage})`,
-    transform: isHovered
+    transform: canHover && isHovered
       ? `perspective(1000px) rotateX(${coords.x}deg) rotateY(${coords.y}deg) scale(1.025)`
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
-    transition: isHovered ? 'none' : 'transform 0.4s ease',
-    transformStyle: 'preserve-3d',
+    transition: isHovered ? 'none' : 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+    transformStyle: canHover ? 'preserve-3d' : 'flat',
     animationDelay: animationDelay
   };
 
@@ -54,7 +66,7 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      style={{ ...tiltStyle, willChange: 'transform' }}
+      style={{ ...tiltStyle, willChange: canHover ? 'transform' : 'auto' }}
     >
       {children}
     </div>
@@ -65,17 +77,13 @@ export default function Products() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
   
   const containerRef = useRef(null);
   const trackRef = useRef(null);
-
-  const categories = [
-    { id: 'all', label: 'All Products' },
-    { id: 'rice', label: 'Premium Rice' },
-    { id: 'oil', label: 'Edible Oils' },
-    { id: 'dorb', label: 'DORB Extracts' },
-    { id: 'byproduct', label: 'Derivatives' }
-  ];
+  const trackContainerRef = useRef(null);
 
   const productsList = [
     // Rice
@@ -84,7 +92,7 @@ export default function Products() {
       category: 'rice',
       name: 'Steam & Parboiled Rice',
       desc: 'Eastern India\'s premium long-grain parboiled rice. Starch gelatinized during parboiling locks in natural nutrients.',
-      image: '/assets/raw_rice.jpg',
+      image: '/assets/process_bg.jpg',
       specs: ['Moisture: Under 14%', 'Purity: 99.9%', 'Broken: Max 5%', 'Admixture: Max 1%']
     },
     {
@@ -100,7 +108,7 @@ export default function Products() {
       category: 'rice',
       name: 'Hemraj Puffed Rice (Muri)',
       desc: 'Double-expanded, crispy puffed rice. Available in our iconic premium brands: Rocket, Gold, Platinum, and Star.',
-      image: '/assets/raw_rice.jpg',
+      image: '/assets/showroom_bg.jpg',
       specs: ['100% Sand-free processing', 'Zero artificial colors', 'High crunch retention', 'Puffed at exact heat levels']
     },
     // Oils
@@ -134,7 +142,7 @@ export default function Products() {
       category: 'dorb',
       name: 'Super Hemgem (DORB)',
       desc: 'Our highest grade De-oiled Rice Bran extraction. An exceptional high-protein, nutrient-dense ingredient for cattle and poultry feeds.',
-      image: '/assets/hero_field.jpg',
+      image: '/assets/story_bg.jpg',
       specs: ['Protein: Min 16%', 'Fiber: Max 12%', 'Sand/Silica: Max 1.5%', 'Moisture: Max 11%']
     },
     {
@@ -142,7 +150,7 @@ export default function Products() {
       category: 'dorb',
       name: 'DORB Grade I',
       desc: 'Export-grade de-oiled extraction. Manufactured under strict solvent extraction parameters to guarantee low sand and high digestibility.',
-      image: '/assets/hero_field.jpg',
+      image: '/assets/process_bg.jpg',
       specs: ['Protein: Min 15%', 'Fiber: Max 14%', 'Sand/Silica: Max 2.5%', 'Moisture: Max 11.5%']
     },
     {
@@ -150,7 +158,7 @@ export default function Products() {
       category: 'dorb',
       name: 'Hemgem Standard (DORB)',
       desc: 'Standard quality de-oiled rice bran. Perfect for domestic feed manufacturers looking for reliable bulk protein inputs.',
-      image: '/assets/hero_field.jpg',
+      image: '/assets/story_bg.jpg',
       specs: ['Protein: Min 14%', 'Fiber: Max 16%', 'Sand/Silica: Max 4%', 'Moisture: Max 12%']
     },
     // Byproducts
@@ -180,6 +188,14 @@ export default function Products() {
     }
   ];
 
+  const categories = [
+    { id: 'all', label: 'All Products', count: productsList.length },
+    { id: 'rice', label: 'Premium Rice', count: productsList.filter(p => p.category === 'rice').length },
+    { id: 'oil', label: 'Edible Oils', count: productsList.filter(p => p.category === 'oil').length },
+    { id: 'dorb', label: 'DORB Extracts', count: productsList.filter(p => p.category === 'dorb').length },
+    { id: 'byproduct', label: 'Derivatives', count: productsList.filter(p => p.category === 'byproduct').length }
+  ];
+
   const filteredProducts = productsList.filter((prod) => {
     const matchesFilter = activeFilter === 'all' || prod.category === activeFilter;
     const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -187,111 +203,245 @@ export default function Products() {
     return matchesFilter && matchesSearch;
   });
 
-  useGSAP(() => {
-    // Only horizontal pin on desktop (> 900px)
-    if (window.innerWidth <= 900) return;
+  // Track horizontal scroll state for mobile indicator & arrows
+  const updateScrollState = useCallback(() => {
+    const el = trackContainerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 15);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
 
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: () => {
-        if (!trackRef.current || !trackRef.current.parentElement) return '+0';
-        const move = trackRef.current.scrollWidth - trackRef.current.parentElement.offsetWidth;
-        return `+=${Math.max(0, move)}`;
-      },
-      scrub: 0.2, // fast response so page scroll continues to next section immediately
-      pin: true,
-      invalidateOnRefresh: true,
-      animation: gsap.to(trackRef.current, {
-        x: () => {
-          if (!trackRef.current || !trackRef.current.parentElement) return 0;
-          const move = trackRef.current.scrollWidth - trackRef.current.parentElement.offsetWidth;
-          return -Math.max(0, move);
+    // Calculate active card index based on scroll position
+    if (trackRef.current && trackRef.current.children.length > 0) {
+      const cards = Array.from(trackRef.current.children);
+      let closestIdx = 0;
+      let minDiff = Infinity;
+      cards.forEach((card, idx) => {
+        const diff = Math.abs(card.offsetLeft - scrollLeft);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+      setActiveCardIndex(closestIdx);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = trackContainerRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    updateScrollState();
+    return () => el.removeEventListener('scroll', updateScrollState);
+  }, [updateScrollState, filteredProducts.length]);
+
+  const scrollTrack = (direction) => {
+    const el = trackContainerRef.current;
+    if (!el) return;
+    const amount = Math.max(260, el.clientWidth * 0.75);
+    el.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth'
+    });
+  };
+
+  const scrollToCard = (index) => {
+    if (!trackRef.current) return;
+    const cards = trackRef.current.children;
+    if (cards[index]) {
+      cards[index].scrollIntoView({
+        behavior: 'smooth',
+        inline: 'start',
+        block: 'nearest'
+      });
+      setActiveCardIndex(index);
+    }
+  };
+
+  const handleFilterChange = (catId) => {
+    setActiveFilter(catId);
+    if (trackContainerRef.current) {
+      trackContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  };
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+
+    // GSAP Pin + Horizontal Scroll only for desktop screens (> 900px)
+    mm.add('(min-width: 901px)', () => {
+      if (!containerRef.current || !trackRef.current || !trackContainerRef.current) return;
+
+      const scrollTrigger = ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: 'top top',
+        end: () => {
+          if (!trackRef.current || !trackContainerRef.current) return '+0';
+          const move = trackRef.current.scrollWidth - trackContainerRef.current.offsetWidth;
+          return `+=${Math.max(0, move)}`;
         },
-        ease: 'none'
-      })
+        scrub: 0.2, // fast response so page scroll continues to next section immediately
+        pin: true,
+        invalidateOnRefresh: true,
+        animation: gsap.to(trackRef.current, {
+          x: () => {
+            if (!trackRef.current || !trackContainerRef.current) return 0;
+            const move = trackRef.current.scrollWidth - trackContainerRef.current.offsetWidth;
+            return -Math.max(0, move);
+          },
+          ease: 'none'
+        })
+      });
+
+      return () => scrollTrigger.kill();
     });
 
-    return () => scrollTrigger.kill();
-  }, []); // Mount once!
+    return () => mm.revert();
+  }, { scope: containerRef, dependencies: [filteredProducts.length] });
 
   // Dynamic layout refresh when filters or search queries change
   useEffect(() => {
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 100);
+      updateScrollState();
+    }, 120);
     return () => clearTimeout(timer);
-  }, [activeFilter, searchQuery, filteredProducts.length]);
+  }, [activeFilter, searchQuery, filteredProducts.length, updateScrollState]);
+
+  // Modal accessibility & body scroll lock
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && selectedProduct) {
+        setSelectedProduct(null);
+      }
+    };
+    if (selectedProduct) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedProduct]);
 
   return (
-    <section ref={containerRef} id="products" style={styles.scrollWrapper} className="dark-section">
+    <section ref={containerRef} id="products" style={styles.scrollWrapper} className="dark-section" aria-labelledby="products-title">
       <div style={styles.stickyContainer} className="products-sticky-container">
         <div className="section-bg section-bg-products"></div>
         <div className="glow" style={{ top: '15%', left: '10%', animationDelay: '-1s' }}></div>
         <div className="glow" style={{ bottom: '20%', right: '10%', animationDelay: '-3s' }}></div>
 
         <div style={styles.splitLayout} className="products-split-layout">
-          {/* Left Sidebar - Stays fixed on scroll */}
+          {/* Left Sidebar on desktop / Header controls on mobile */}
           <div style={styles.sidebar} className="products-sidebar">
             <p style={styles.kicker}>THE HARVEST</p>
-            <h2 style={styles.title}>
+            <h2 id="products-title" style={styles.title} className="products-section-title">
               Our Product <span style={{ color: 'var(--accent-gold)' }}>Showroom</span>
             </h2>
             <div style={styles.divider}></div>
-            <p style={styles.sidebarDesc}>
+            <p style={styles.sidebarDesc} className="products-sidebar-desc">
               Discover six decades of processing mastery locked into our premium food oils, grain products, and exports.
             </p>
 
             {/* Filter Tabs */}
-            <div style={styles.tabs} className="category-tabs">
+            <div style={styles.tabs} className="category-tabs" role="group" aria-label="Filter products by category">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveFilter(cat.id)}
+                  onClick={() => handleFilterChange(cat.id)}
                   className={`category-tab-btn ${activeFilter === cat.id ? 'active' : ''}`}
                   style={{
-                    ...styles.tabBtn,
                     backgroundColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'transparent',
                     color: activeFilter === cat.id ? 'var(--bg-primary)' : 'var(--text-primary)',
                     borderColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'var(--border-light)'
                   }}
+                  aria-pressed={activeFilter === cat.id}
                 >
-                  {cat.label}
+                  <span>{cat.label}</span>
+                  <span className="tab-count-badge">{cat.count}</span>
                 </button>
               ))}
             </div>
 
             {/* Search Box */}
-            <div style={styles.searchBox} className="glass">
-              <Search size={18} color="var(--text-secondary)" />
+            <div style={styles.searchBox} className="glass products-search-box">
+              <Search size={18} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
               <input
+                id="catalog-search"
+                name="search"
                 type="text"
-                placeholder="Search catalog..."
+                placeholder="Search products or specs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={styles.searchInput}
+                className="products-search-input"
+                aria-label="Search product catalog"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="products-search-clear"
+                  aria-label="Clear search query"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Carousel Controls & Item Counter */}
+            <div className="products-mobile-controls">
+              <div className="products-mobile-count">
+                <SlidersHorizontal size={13} />
+                <span>{filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'}</span>
+              </div>
+              <div className="products-mobile-nav">
+                <button
+                  onClick={() => scrollTrack('left')}
+                  disabled={!canScrollLeft}
+                  className="products-mobile-nav-btn"
+                  aria-label="Previous product"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => scrollTrack('right')}
+                  disabled={!canScrollRight}
+                  className="products-mobile-nav-btn"
+                  aria-label="Next product"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Right Panel - Horizontal Scrubbing Track */}
-          <div style={styles.trackContainer} className="products-track-container">
+          {/* Right Panel - Horizontal Scrubbing Track on desktop / Smooth Swipe on mobile */}
+          <div ref={trackContainerRef} style={styles.trackContainer} className="products-track-container">
             <div ref={trackRef} style={styles.sliderTrack} className="products-slider-track">
               {filteredProducts.map((prod, idx) => (
                 <TiltCard
                   key={prod.id}
                   bgImage={prod.image}
                   onClick={() => setSelectedProduct(prod)}
-                  animationDelay={`${idx * 0.08}s`}
+                  animationDelay={`${Math.min(idx * 0.06, 0.4)}s`}
                 >
                   <div style={styles.cardScrim} className="cardScrim"></div>
-                  <div style={styles.cardContent}>
-                    <span style={styles.cardCategory}>{prod.category.toUpperCase()}</span>
-                    <h3 style={styles.cardName}>{prod.name}</h3>
-                    <p style={styles.cardDesc}>{prod.desc.substring(0, 75)}...</p>
+                  <div style={styles.cardContent} className="products-card-content">
+                    <span style={styles.cardCategory} className="products-card-badge">
+                      {prod.category.toUpperCase()}
+                    </span>
+                    <h3 style={styles.cardName} className="products-card-name">
+                      {prod.name}
+                    </h3>
+                    <p style={styles.cardDesc} className="products-card-desc">
+                      {prod.desc.substring(0, 80)}...
+                    </p>
                     
-                    <span style={styles.viewLink}>
-                      <Eye size={12} />
+                    <span style={styles.viewLink} className="product-card-action">
+                      <Eye size={13} />
                       SPECS SHEET
                     </span>
                   </div>
@@ -299,36 +449,97 @@ export default function Products() {
               ))}
 
               {filteredProducts.length === 0 && (
-                <div style={styles.noResults}>
-                  No products match your current search queries or filters.
+                <div style={styles.noResults} className="products-empty-state glass">
+                  <p style={{ margin: 0, fontWeight: 600, color: '#FAF8F5', fontSize: '1.05rem' }}>
+                    No products found
+                  </p>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(250, 248, 245, 0.7)' }}>
+                    No matches for &ldquo;{searchQuery}&rdquo; in this category.
+                  </span>
+                  <button
+                    onClick={() => { setActiveFilter('all'); setSearchQuery(''); }}
+                    className="reset-filters-btn"
+                  >
+                    Reset All Filters
+                  </button>
                 </div>
               )}
             </div>
+
+            {/* Mobile Pagination Dots */}
+            {filteredProducts.length > 1 && (
+              <div className="products-mobile-dots">
+                {filteredProducts.map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    onClick={() => scrollToCard(dotIdx)}
+                    className={`products-mobile-dot ${activeCardIndex === dotIdx ? 'active' : ''}`}
+                    aria-label={`Go to product ${dotIdx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Product Detail Modal */}
       {selectedProduct && (
-        <div style={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
-          <div style={styles.modalContent} className="glass" onClick={(e) => e.stopPropagation()}>
-            <button style={styles.closeBtn} onClick={() => setSelectedProduct(null)}>×</button>
+        <div
+          style={styles.modalOverlay}
+          className="products-modal-overlay"
+          onClick={() => setSelectedProduct(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-product-title"
+        >
+          <div
+            style={styles.modalContent}
+            className="glass products-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              style={styles.closeBtn}
+              className="products-modal-close"
+              onClick={() => setSelectedProduct(null)}
+              aria-label="Close product specifications"
+            >
+              <X size={20} />
+            </button>
             <div style={styles.modalGrid} className="modal-inner-grid">
-              <div style={styles.modalLeft}>
-                <span style={styles.modalCatBadge}>{selectedProduct.category.toUpperCase()}</span>
-                <h3 style={styles.modalTitle}>{selectedProduct.name}</h3>
-                <p style={styles.modalDesc}>{selectedProduct.desc}</p>
+              <div style={styles.modalLeft} className="products-modal-left">
+                <div
+                  className="modal-banner-image"
+                  style={{ backgroundImage: `url(${selectedProduct.image})` }}
+                >
+                  <span className="modal-banner-badge">
+                    {selectedProduct.category.toUpperCase()}
+                  </span>
+                </div>
+                <h3 id="modal-product-title" style={styles.modalTitle} className="products-modal-title">
+                  {selectedProduct.name}
+                </h3>
+                <p style={styles.modalDesc} className="products-modal-desc">
+                  {selectedProduct.desc}
+                </p>
               </div>
-              <div style={styles.modalRight}>
+              <div style={styles.modalRight} className="products-modal-right">
                 <h4 style={styles.specsTitle}>TECHNICAL SPECIFICATIONS</h4>
-                <ul style={styles.specsList}>
+                <ul style={styles.specsList} className="products-specs-list">
                   {selectedProduct.specs.map((spec, i) => (
-                    <li key={i} style={styles.specItem}>
+                    <li key={i} style={styles.specItem} className="products-spec-item">
                       <span style={styles.specDot}></span>
-                      {spec}
+                      <span>{spec}</span>
                     </li>
                   ))}
                 </ul>
+
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="modal-done-btn"
+                >
+                  Close Specifications
+                </button>
               </div>
             </div>
           </div>
@@ -341,7 +552,7 @@ export default function Products() {
 const styles = {
   scrollWrapper: {
     position: 'relative',
-    backgroundColor: 'var(--bg-secondary)',
+    backgroundColor: '#120B06', // Deep dark espresso background matching dark-section
     overflow: 'hidden'
   },
   stickyContainer: {
@@ -356,18 +567,15 @@ const styles = {
     display: 'flex',
     width: '100%',
     height: '100%',
-    padding: '0 4rem',
     alignItems: 'center',
-    gap: '3rem',
     zIndex: 2,
     position: 'relative'
   },
   sidebar: {
-    flex: '0 0 340px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    gap: '1.2rem'
+    zIndex: 3
   },
   kicker: {
     fontFamily: 'var(--font-sans)',
@@ -375,58 +583,37 @@ const styles = {
     fontWeight: '700',
     letterSpacing: '0.25em',
     color: 'var(--accent-gold)',
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
+    marginBottom: '0.2rem'
   },
   title: {
     fontFamily: 'var(--font-serif)',
-    fontSize: '2.8rem',
     fontWeight: '400',
     lineHeight: 1.1,
-    color: 'var(--text-primary)'
+    color: '#FAF8F5'
   },
   divider: {
     width: '45px',
     height: '2px',
-    backgroundColor: 'var(--accent-gold)'
+    backgroundColor: 'var(--accent-gold)',
+    margin: '0.2rem 0'
   },
   sidebarDesc: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.95rem',
     lineHeight: 1.6,
-    color: 'var(--text-secondary)'
+    color: 'rgba(250, 248, 245, 0.75)'
   },
   tabs: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: '0.6rem',
-    margin: '0.5rem 0'
-  },
-  tabBtn: {
-    padding: '0.5rem 1.2rem',
-    border: '1px solid',
-    borderRadius: '20px',
-    fontSize: '0.85rem',
-    cursor: 'pointer',
-    fontFamily: 'var(--font-sans)',
-    fontWeight: '500',
-    transition: 'all 0.3s ease',
-    borderWidth: '1px',
-    borderStyle: 'solid'
+    margin: '0.25rem 0'
   },
   searchBox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.8rem',
-    padding: '0.8rem 1.2rem',
-    borderRadius: '16px',
-    border: '1px solid var(--border-light)',
     width: '100%'
   },
   searchInput: {
     border: 'none',
     background: 'transparent',
-    color: 'var(--text-primary)',
+    color: '#FAF8F5',
     outline: 'none',
     fontSize: '0.9rem',
     fontFamily: 'var(--font-sans)',
@@ -436,19 +623,16 @@ const styles = {
     flex: '1 1 auto',
     height: '100%',
     display: 'flex',
-    alignItems: 'center',
-    overflow: 'hidden'
+    alignItems: 'center'
   },
   sliderTrack: {
     display: 'flex',
-    gap: '2.5rem',
-    padding: '2rem 0',
     willChange: 'transform'
   },
   cardScrim: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(to top, rgba(18, 11, 6, 0.95) 0%, rgba(18, 11, 6, 0.35) 60%, rgba(18, 11, 6, 0.15) 100%)',
+    background: 'linear-gradient(to top, rgba(18, 11, 6, 0.96) 0%, rgba(18, 11, 6, 0.45) 55%, rgba(18, 11, 6, 0.15) 100%)',
     zIndex: 1,
     transition: 'opacity 0.4s ease'
   },
@@ -457,7 +641,6 @@ const styles = {
     bottom: 0,
     left: 0,
     right: 0,
-    padding: '2.2rem 2rem',
     zIndex: 2,
     display: 'flex',
     flexDirection: 'column',
@@ -496,8 +679,7 @@ const styles = {
   noResults: {
     fontFamily: 'var(--font-sans)',
     fontSize: '1rem',
-    color: 'var(--text-secondary)',
-    padding: '3rem'
+    color: 'var(--text-secondary)'
   },
   modalOverlay: {
     position: 'fixed',
@@ -507,68 +689,31 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(8px)',
-    padding: '2rem'
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)'
   },
   modalContent: {
     width: '100%',
-    maxWidth: '820px',
-    borderRadius: '32px',
-    border: '1px solid var(--border-light)',
-    padding: '4rem 3.5rem',
-    position: 'relative',
-    boxShadow: '0 40px 100px rgba(0, 0, 0, 0.4)'
+    position: 'relative'
   },
   closeBtn: {
-    position: 'absolute',
-    top: '2rem',
-    right: '2rem',
-    background: 'none',
-    border: 'none',
-    fontSize: '2.2rem',
-    color: 'var(--text-primary)',
-    cursor: 'pointer',
-    opacity: 0.6,
-    transition: 'opacity 0.2s',
-    lineHeight: 0.5
+    cursor: 'pointer'
   },
   modalGrid: {
-    display: 'flex',
-    gap: '4rem',
-    alignItems: 'flex-start'
+    display: 'flex'
   },
-  modalLeft: {
-    flex: '1 1 55%'
-  },
-  modalCatBadge: {
-    fontFamily: 'var(--font-sans)',
-    fontSize: '0.75rem',
-    fontWeight: '700',
-    color: 'var(--accent-gold)',
-    letterSpacing: '0.2em',
-    display: 'block',
-    marginBottom: '0.6rem'
-  },
+  modalLeft: {},
   modalTitle: {
     fontFamily: 'var(--font-serif)',
-    fontSize: '2.5rem',
     color: 'var(--text-primary)',
-    lineHeight: 1.1,
-    marginBottom: '1.5rem'
+    lineHeight: 1.1
   },
   modalDesc: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.95rem',
     color: 'var(--text-secondary)',
     lineHeight: 1.7
   },
-  modalRight: {
-    flex: '1 1 45%',
-    backgroundColor: 'rgba(197, 160, 89, 0.05)',
-    border: '1px solid rgba(197, 160, 89, 0.15)',
-    borderRadius: '24px',
-    padding: '2.2rem'
-  },
+  modalRight: {},
   specsTitle: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.8rem',
@@ -581,7 +726,9 @@ const styles = {
     listStyle: 'none',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.8rem'
+    gap: '0.8rem',
+    padding: 0,
+    margin: 0
   },
   specItem: {
     display: 'flex',
@@ -595,6 +742,7 @@ const styles = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: 'var(--accent-gold)'
+    backgroundColor: 'var(--accent-gold)',
+    flexShrink: 0
   }
 };

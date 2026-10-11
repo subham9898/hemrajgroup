@@ -9,10 +9,19 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Timeline() {
   const [activeStep, setActiveStep] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 900 : false);
   const containerRef = useRef(null);
   const yearsRef = useRef(null);
   const lineRef = useRef(null);
   const bgLayersRef = useRef([]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 900);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const milestones = [
     {
@@ -40,7 +49,7 @@ export default function Timeline() {
       year: '2012',
       title: 'Global Export Leader',
       desc: 'Began exporting De-oiled Rice Bran (DORB) globally, gaining over 35% Indian export share for animal feed inputs.',
-      image: '/assets/impact_bg.jpg',
+      image: '/assets/process_bg.jpg',
       icon: <Globe size={24} color="var(--accent-gold)" />
     },
     {
@@ -53,10 +62,10 @@ export default function Timeline() {
   ];
 
   useGSAP(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || isMobile) return;
 
     // Track scroll triggers for active steps and progress calculation
-    ScrollTrigger.create({
+    const st = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top top',
       end: 'bottom bottom',
@@ -72,7 +81,7 @@ export default function Timeline() {
     });
 
     // Native scrub tween for the golden timeline track line
-    gsap.to(lineRef.current, {
+    const tween = gsap.to(lineRef.current, {
       scaleY: 1,
       ease: 'none',
       scrollTrigger: {
@@ -103,12 +112,24 @@ export default function Timeline() {
       }
     });
 
-  }, [activeStep, milestones.length]);
+    return () => {
+      st.kill();
+      tween.kill();
+    };
+  }, [isMobile, activeStep, milestones.length]);
 
   return (
-    <div ref={containerRef} style={styles.scrollContainer} id="story" className="light-section">
+    <div
+      ref={containerRef}
+      style={{
+        ...styles.scrollContainer,
+        height: isMobile ? 'auto' : '250vh'
+      }}
+      id="story"
+      className="dark-section"
+    >
       {/* Sticky Window Layer */}
-      <div style={styles.stickyWindow}>
+      <div style={styles.stickyWindow} className="sticky-window-timeline">
         
         {/* Fullscreen Background Images with Cross-Fade & GSAP Zoom */}
         {milestones.map((item, idx) => (
@@ -182,16 +203,26 @@ export default function Timeline() {
                 const nodeProgress = idx / Math.max(1, milestones.length - 1);
                 const isPassed = scrollProgress >= nodeProgress;
                 const isActive = activeStep === idx;
+                const scrollToMilestone = () => {
+                  if (containerRef.current) {
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const scrollAmount = window.scrollY + rect.top + nodeProgress * (rect.height - window.innerHeight);
+                    window.scrollTo({ top: scrollAmount, behavior: 'smooth' });
+                  }
+                };
                 return (
-                  <div
+                  <button
                     key={idx}
-                    onClick={() => {
-                      if (containerRef.current) {
-                        const rect = containerRef.current.getBoundingClientRect();
-                        const scrollAmount = window.scrollY + rect.top + nodeProgress * (rect.height - window.innerHeight);
-                        window.scrollTo({ top: scrollAmount, behavior: 'smooth' });
+                    type="button"
+                    onClick={scrollToMilestone}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        scrollToMilestone();
                       }
                     }}
+                    aria-label={`Jump to ${item.year}: ${item.title}`}
+                    aria-current={isActive ? 'step' : undefined}
                     style={{
                       ...styles.node,
                       top: `${nodeProgress * 100}%`,
@@ -201,11 +232,13 @@ export default function Timeline() {
                         : isPassed 
                           ? '0 0 10px rgba(197, 160, 89, 0.3)' 
                           : 'none',
-                      transform: isActive ? 'translate3d(-50%, -50%, 0) scale(1.4)' : 'translate3d(-50%, -50%, 0) scale(1)'
+                      transform: isActive ? 'translate3d(-50%, -50%, 0) scale(1.4)' : 'translate3d(-50%, -50%, 0) scale(1)',
+                      border: 'none',
+                      padding: 0
                     }}
                   >
                     {isActive && <div style={styles.ripplePulse} className="node-ripple" />}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -230,13 +263,19 @@ export default function Timeline() {
 
                 {/* Micro Progress Dots */}
                 <div style={styles.progressContainer}>
-                  {milestones.map((_, idx) => (
-                    <div
+                  {milestones.map((item, idx) => (
+                    <button
                       key={idx}
+                      type="button"
+                      onClick={() => setActiveStep(idx)}
+                      aria-label={`Switch to ${item.year}: ${item.title}`}
                       style={{
                         ...styles.dot,
                         backgroundColor: activeStep === idx ? 'var(--accent-gold)' : 'rgba(250, 248, 245, 0.25)',
-                        transform: activeStep === idx ? 'scale(1.3)' : 'scale(1)'
+                        transform: activeStep === idx ? 'scale(1.4)' : 'scale(1)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0
                       }}
                     />
                   ))}
@@ -393,11 +432,14 @@ const styles = {
     width: '100%',
     borderRadius: '32px',
     padding: '3.5rem 3rem',
-    border: '1px solid rgba(250, 248, 245, 0.08)',
+    backgroundColor: 'rgba(18, 11, 6, 0.78)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(197, 160, 89, 0.25)',
     display: 'flex',
     flexDirection: 'column',
     gap: '1.5rem',
-    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.3)'
+    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(250, 248, 245, 0.1)'
   },
   kicker: {
     fontFamily: 'var(--font-sans)',

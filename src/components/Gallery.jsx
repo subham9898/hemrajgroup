@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Gallery({ active }) {
@@ -9,7 +9,7 @@ export default function Gallery({ active }) {
       id: 1,
       title: 'Golden Paddy Fields',
       subtitle: 'Sustainable sourcing directly from regional farming communities.',
-      image: '/assets/hero_field.jpg',
+      image: '/assets/story_bg.jpg',
       category: 'Harvesting'
     },
     {
@@ -59,6 +59,20 @@ export default function Gallery({ active }) {
     setLightboxIndex((prev) => (prev === galleryItems.length - 1 ? 0 : prev + 1));
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && lightboxIndex !== null) {
+        setLightboxIndex(null);
+      } else if (e.key === 'ArrowLeft' && lightboxIndex !== null) {
+        setLightboxIndex((prev) => (prev === 0 ? galleryItems.length - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight' && lightboxIndex !== null) {
+        setLightboxIndex((prev) => (prev === galleryItems.length - 1 ? 0 : prev + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex]);
+
   return (
     <section id="gallery" style={styles.section} className={`light-section reveal-section ${active ? 'active' : ''}`}>
       <div className="section-bg section-bg-gallery"></div>
@@ -68,11 +82,11 @@ export default function Gallery({ active }) {
         {/* Section Header */}
         <div style={styles.header}>
           <p style={styles.kicker}>VISUAL JOURNEY</p>
-          <h2 style={styles.title}>
+          <h2 style={styles.title} className="gallery-title">
             Inside Our <span style={{ color: 'var(--accent-gold)' }}>Facilities</span>
           </h2>
           <div style={styles.divider}></div>
-          <p style={styles.subtitleText}>
+          <p style={styles.subtitleText} className="gallery-subtitle">
             A photographic showcase of our farms, state-of-the-art processing plants, and premium quality harvests.
           </p>
         </div>
@@ -109,12 +123,12 @@ export default function Gallery({ active }) {
 
       {/* Lightbox Slideshow Modal */}
       {lightboxIndex !== null && (
-        <div style={styles.lightboxOverlay} onClick={() => setLightboxIndex(null)}>
-          <button style={styles.closeBtn} onClick={() => setLightboxIndex(null)}>
+        <div style={styles.lightboxOverlay} onClick={() => setLightboxIndex(null)} role="dialog" aria-modal="true" aria-label="Facility image lightbox">
+          <button style={styles.closeBtn} onClick={() => setLightboxIndex(null)} aria-label="Close image lightbox">
             <X size={32} />
           </button>
           
-          <button style={styles.arrowLeft} onClick={handlePrev}>
+          <button style={styles.arrowLeft} onClick={handlePrev} aria-label="Previous facility photo">
             <ChevronLeft size={36} />
           </button>
 
@@ -132,7 +146,7 @@ export default function Gallery({ active }) {
             </div>
           </div>
 
-          <button style={styles.arrowRight} onClick={handleNext}>
+          <button style={styles.arrowRight} onClick={handleNext} aria-label="Next facility photo">
             <ChevronRight size={36} />
           </button>
         </div>

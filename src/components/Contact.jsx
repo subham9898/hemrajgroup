@@ -22,7 +22,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" style={styles.section} className="light-section">
+    <section id="contact" style={styles.section} className="dark-section">
       <div className="section-bg section-bg-contact"></div>
       <div className="container">
         {/* Section Header */}
@@ -58,7 +58,11 @@ export default function Contact() {
                 </div>
                 <div style={styles.infoText}>
                   <p style={styles.infoLabel}>CALL US</p>
-                  <p style={styles.infoVal}>+91 33 2229 8038<br />+91 33 4064 9316</p>
+                  <p style={styles.infoVal}>
+                    <a href="tel:+913322298038" style={{ color: 'inherit', textDecoration: 'none' }}>+91 33 2229 8038</a>
+                    <br />
+                    <a href="tel:+913340649316" style={{ color: 'inherit', textDecoration: 'none' }}>+91 33 4064 9316</a>
+                  </p>
                 </div>
               </div>
 
@@ -68,7 +72,9 @@ export default function Contact() {
                 </div>
                 <div style={styles.infoText}>
                   <p style={styles.infoLabel}>EMAIL INQUIRIES</p>
-                  <p style={styles.infoVal}>info@hemrajgroup.co.in</p>
+                  <p style={styles.infoVal}>
+                    <a href="mailto:info@hemrajgroup.co.in" style={{ color: 'inherit', textDecoration: 'none' }}>info@hemrajgroup.co.in</a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -93,7 +99,7 @@ export default function Contact() {
             <h3 style={styles.formTitle}>Send an Inquiry</h3>
             <p style={styles.formSub}>Fill out the fields below and our corporate desk will get back to you within 24 hours.</p>
 
-            <form onSubmit={handleSubmit} style={styles.form}>
+            <form onSubmit={handleSubmit} style={styles.form} noValidate>
               <div className="form-group">
                 <input
                   type="text"
@@ -104,6 +110,7 @@ export default function Contact() {
                   onChange={handleChange}
                   className="form-input"
                   required
+                  aria-required="true"
                 />
                 <label htmlFor="contact-name" className="form-label">Full Name *</label>
               </div>
@@ -118,6 +125,7 @@ export default function Contact() {
                   onChange={handleChange}
                   className="form-input"
                   required
+                  aria-required="true"
                 />
                 <label htmlFor="contact-email" className="form-label">Email Address *</label>
               </div>
@@ -146,12 +154,13 @@ export default function Contact() {
                   className="form-input"
                   style={{ resize: 'none' }}
                   required
+                  aria-required="true"
                 ></textarea>
                 <label htmlFor="contact-message" className="form-label">Message / Inquiry *</label>
               </div>
 
               <div style={styles.btnRow}>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn-primary" aria-label="Submit inquiry">
                   Submit Inquiry
                   <Send size={14} />
                 </button>
@@ -159,13 +168,13 @@ export default function Contact() {
 
               {/* Status alerts */}
               {status === 'success' && (
-                <div style={styles.statusSuccess}>
-                  Thank you! Your message was sent successfully. Our team will contact you shortly.
+                <div style={styles.statusSuccess} role="status" aria-live="polite">
+                  Thank you! Your message was received. Our corporate desk will contact you at {form.email || 'your email'} shortly. You can also reach us directly at <a href="mailto:info@hemrajgroup.co.in" style={{ color: '#2e7d32', fontWeight: 600 }}>info@hemrajgroup.co.in</a>.
                 </div>
               )}
               {status === 'error' && (
-                <div style={styles.statusError}>
-                  Please fill out all required fields marked with (*).
+                <div style={styles.statusError} role="alert" aria-live="assertive">
+                  Please fill out all required fields marked with (*). Ensure a valid email address is provided.
                 </div>
               )}
             </form>
