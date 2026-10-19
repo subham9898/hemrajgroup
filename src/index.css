@@ -1,20 +1,20 @@
 :root {
-  /* Default Luxury Parchment Light Theme Tokens */
-  --bg-primary: #FAF8F5;
-  --bg-secondary: #F3ECE0;
-  --bg-dark: #120B06;
-  --bg-glass: rgba(250, 248, 245, 0.85);
-  --bg-glass-dark: rgba(18, 11, 6, 0.88);
+  /* Default Luxury Dark Theme Tokens */
+  --bg-primary: #120B06;
+  --bg-secondary: #1C130C;
+  --bg-dark: #0A0604;
+  --bg-glass: rgba(18, 11, 6, 0.82);
+  --bg-glass-dark: rgba(10, 6, 4, 0.88);
   
-  --text-primary: #1C140E;
-  --text-secondary: #54473F;
+  --text-primary: #FAF8F5;
+  --text-secondary: #C5BDB7;
   --text-light: #FAF8F5;
   
   --accent-gold: #C5A059;
-  --accent-gold-text: #875F1E;
+  --accent-gold-text: #D4B778;
   --accent-gold-hover: #AA823B;
   --accent-gold-light: rgba(197, 160, 89, 0.15);
-  --border-light: rgba(46, 36, 30, 0.12);
+  --border-light: rgba(250, 248, 245, 0.12);
   --border-dark: rgba(250, 248, 245, 0.12);
   
   /* Fonts */
@@ -23,6 +23,20 @@
   
   /* Layout */
   --dock-height: 70px;
+}
+
+/* Dark Theme Explicit */
+.theme-dark {
+  --bg-primary: #120B06;
+  --bg-secondary: #1C130C;
+  --bg-dark: #0A0604;
+  --bg-glass: rgba(18, 11, 6, 0.82);
+  --bg-glass-dark: rgba(10, 6, 4, 0.88);
+  
+  --text-primary: #FAF8F5;
+  --text-secondary: #C5BDB7;
+  --accent-gold-text: #D4B778;
+  --border-light: rgba(250, 248, 245, 0.12);
 }
 
 /* Light Theme Explicit */
@@ -41,20 +55,6 @@
   --accent-gold-text: #875F1E;
   --accent-gold-hover: #AA823B;
   --border-light: rgba(46, 36, 30, 0.12);
-}
-
-/* Dark Theme Specific */
-.theme-dark {
-  --bg-primary: #120B06;
-  --bg-secondary: #1C130C;
-  --bg-dark: #0A0604;
-  --bg-glass: rgba(18, 11, 6, 0.82);
-  --bg-glass-dark: rgba(10, 6, 4, 0.88);
-  
-  --text-primary: #FAF8F5;
-  --text-secondary: #C5BDB7;
-  --accent-gold-text: #D4B778;
-  --border-light: rgba(250, 248, 245, 0.12);
 }
 
 /* Accessibility Focus Visible */
@@ -98,43 +98,7 @@
   transition: all 0.4s ease;
 }
 
-/* "Inside Our Facilities" (Gallery) explicit Light Mode styling */
-#gallery.light-section {
-  background-color: #FAF8F5 !important;
-  color: #1C140E !important;
-}
 
-#gallery.light-section .gallery-title,
-#gallery.light-section h2 {
-  color: #1C140E !important;
-}
-
-#gallery.light-section .gallery-subtitle,
-#gallery.light-section .subtitleText,
-#gallery.light-section p {
-  color: #54473F !important;
-}
-
-#gallery.light-section .gallery-item-card {
-  border-color: rgba(46, 36, 30, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(46, 36, 30, 0.08) !important;
-  background-color: rgba(255, 255, 255, 0.75) !important;
-}
-
-#gallery.light-section .gallery-item-card:hover {
-  border-color: var(--accent-gold) !important;
-  box-shadow: 0 20px 40px rgba(197, 160, 89, 0.2) !important;
-}
-
-#gallery.light-section .gallery-hover-overlay .itemTitle,
-#gallery.light-section .itemTitle {
-  color: #FAF8F5 !important;
-}
-
-#gallery.light-section .gallery-hover-overlay .itemSubtitle,
-#gallery.light-section .itemSubtitle {
-  color: rgba(250, 248, 245, 0.8) !important;
-}
 
 * {
   margin: 0;

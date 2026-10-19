@@ -18,18 +18,17 @@ export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 900);
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('hemraj-theme');
-    if (saved === 'dark') {
-      localStorage.setItem('hemraj-theme', 'light');
+    if (saved === 'light') {
       return false;
     }
-    return saved === 'dark-manual';
+    return true; // Default to dark mode
   });
 
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('theme-dark');
-      localStorage.setItem('hemraj-theme', 'dark-manual');
+      localStorage.setItem('hemraj-theme', 'dark');
     } else {
       document.documentElement.classList.remove('theme-dark');
       document.documentElement.classList.add('theme-light');
