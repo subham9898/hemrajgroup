@@ -4,7 +4,7 @@ import Hero from './components/Hero';
 import Timeline from './components/Timeline';
 import Products from './components/Products';
 import Gallery from './components/Gallery';
-import Dashboard from './components/Dashboard';
+// import Dashboard from './components/Dashboard';
 import Contact from './components/Contact';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -18,13 +18,23 @@ export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 900);
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('hemraj-theme');
-    return saved ? saved === 'dark' : true; // Default to dark mode
+    if (saved === 'dark') {
+      localStorage.setItem('hemraj-theme', 'light');
+      return false;
+    }
+    return saved === 'dark-manual';
   });
 
   useEffect(() => {
-    document.documentElement.classList.remove('theme-light', 'theme-dark');
-    document.documentElement.classList.add(isDark ? 'theme-dark' : 'theme-light');
-    localStorage.setItem('hemraj-theme', isDark ? 'dark' : 'light');
+    if (isDark) {
+      document.documentElement.classList.remove('theme-light');
+      document.documentElement.classList.add('theme-dark');
+      localStorage.setItem('hemraj-theme', 'dark-manual');
+    } else {
+      document.documentElement.classList.remove('theme-dark');
+      document.documentElement.classList.add('theme-light');
+      localStorage.setItem('hemraj-theme', 'light');
+    }
   }, [isDark]);
 
   const toggleTheme = () => {
@@ -41,7 +51,7 @@ export default function App() {
 
   // Intersection Observer to trace which section is active
   useEffect(() => {
-    const sections = ['home', 'story', 'products', 'gallery', 'dashboard', 'contact'];
+    const sections = ['home', 'story', 'products', 'gallery', 'contact'];
     const observers = [];
 
     sections.forEach((secId) => {
@@ -138,7 +148,7 @@ export default function App() {
         
         <Gallery active={currentSection === 'gallery'} />
         
-        <Dashboard active={currentSection === 'dashboard'} />
+        {/* <Dashboard active={currentSection === 'dashboard'} /> */}
         
         <Contact active={currentSection === 'contact'} />
       </main>
@@ -159,7 +169,6 @@ export default function App() {
             <a href="#story" className="footer-link" style={styles.footerLink}>Our Story</a>
             <a href="#products" className="footer-link" style={styles.footerLink}>Products</a>
             <a href="#gallery" className="footer-link" style={styles.footerLink}>Gallery</a>
-            <a href="#dashboard" className="footer-link" style={styles.footerLink}>Impact</a>
             <a href="#contact" className="footer-link" style={styles.footerLink}>Contact</a>
           </div>
         </div>

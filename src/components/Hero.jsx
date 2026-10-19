@@ -177,7 +177,7 @@ const styles = {
   imageOverlay: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(18,11,6,0.4) 100%)',
+    background: 'linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(18,11,6,0.3) 50%, rgba(18,11,6,0.55) 100%)',
     zIndex: 1
   },
   scrim: {
@@ -196,19 +196,15 @@ const styles = {
   },
   eyebrow: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.75rem',
-    fontWeight: '700',
-    letterSpacing: '0.18em',
+    fontSize: 'clamp(0.72rem, 1.1vw, 0.85rem)',
+    fontWeight: '600',
+    letterSpacing: '0.22em',
     textTransform: 'uppercase',
-    color: 'var(--accent-gold-text, #E5C380)',
-    backgroundColor: 'rgba(197, 160, 89, 0.22)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    border: '1px solid rgba(197, 160, 89, 0.45)',
-    padding: '0.4rem 1.2rem',
-    borderRadius: '4px',
+    color: 'var(--accent-gold)',
     display: 'inline-block',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+    padding: '0.2rem 0',
+    marginBottom: '0.5rem',
+    textShadow: '0 2px 12px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.95)'
   },
   title: {
     fontFamily: 'var(--font-serif)',

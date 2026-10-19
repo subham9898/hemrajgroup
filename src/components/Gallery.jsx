@@ -80,7 +80,7 @@ export default function Gallery({ active }) {
       
       <div className="container" style={styles.container}>
         {/* Section Header */}
-        <div style={styles.header}>
+        <div style={styles.header} className="gallery-header section-header">
           <p style={styles.kicker}>VISUAL JOURNEY</p>
           <h2 style={styles.title} className="gallery-title">
             Inside Our <span style={{ color: 'var(--accent-gold)' }}>Facilities</span>
@@ -157,7 +157,7 @@ export default function Gallery({ active }) {
 
 const styles = {
   section: {
-    padding: '8rem 0',
+    padding: '5.5rem 0',
     backgroundColor: 'var(--bg-primary)',
     position: 'relative',
     overflow: 'hidden'

@@ -22,11 +22,11 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" style={styles.section} className="dark-section">
+    <section id="contact" style={styles.section} className="light-section">
       <div className="section-bg section-bg-contact"></div>
       <div className="container">
         {/* Section Header */}
-        <div style={styles.header}>
+        <div style={styles.header} className="contact-header section-header">
           <p style={styles.kicker}>CONNECT</p>
           <h2 style={styles.title}>
             Get in Touch with <span style={{ color: 'var(--accent-gold)' }}>Our Hub</span>
@@ -188,13 +188,13 @@ export default function Contact() {
 
 const styles = {
   section: {
-    padding: '8rem 0',
+    padding: '5.5rem 0',
     backgroundColor: 'var(--bg-secondary)',
     position: 'relative'
   },
   header: {
     textAlign: 'center',
-    marginBottom: '5rem'
+    marginBottom: '3.5rem'
   },
   kicker: {
     fontFamily: 'var(--font-sans)',

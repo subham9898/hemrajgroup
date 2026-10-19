@@ -9,12 +9,11 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
   const leftItems = [
     { label: 'HOME', target: 'home' },
     { label: 'OUR STORY', target: 'story' },
-    { label: 'GALLERY', target: 'gallery' }
+    { label: 'PRODUCTS', target: 'products' }
   ];
 
   const rightItems = [
-    { label: 'PRODUCTS', target: 'products' },
-    { label: 'IMPACT', target: 'dashboard' },
+    { label: 'GALLERY', target: 'gallery' },
     { label: 'CONTACT', target: 'contact' }
   ];
 
@@ -45,6 +44,9 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
     }
   };
 
+  const isOverDarkHero = !isScrolled && currentSection === 'home';
+  const navTextColor = isOverDarkHero ? '#FAF8F5' : 'var(--text-primary)';
+
   if (isDesktop) {
     // Desktop Symmetric Centered Header Navbar
     return (
@@ -53,7 +55,7 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
           ...styles.nav,
           ...(isScrolled ? styles.navScrolled : styles.navNormal)
         }}
-        className="glass navbar-dock"
+        className={`navbar-dock ${isScrolled ? 'scrolled glass' : 'transparent'}`}
       >
         {/* Left Side: Home, Our Story, Gallery */}
         <div style={styles.navGroupLeft}>
@@ -69,9 +71,10 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
                 }}
                 style={{
                   ...styles.navLink,
-                  color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+                  color: isActive ? 'var(--accent-gold)' : navTextColor,
                   fontWeight: isActive ? '700' : '500',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  textShadow: isOverDarkHero ? '0 1px 4px rgba(0,0,0,0.5)' : 'none'
                 }}
                 className={`nav-link-btn ${isActive ? 'active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
@@ -88,7 +91,7 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
           <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={styles.logoImg} />
           <div style={styles.brandTextContainer}>
             <span style={styles.brandText}>HEMRAJ</span>
-            <span style={styles.brandSub}>ESTD. 1958</span>
+            <span style={{ ...styles.brandSub, color: isOverDarkHero ? 'rgba(250, 248, 245, 0.75)' : 'var(--text-secondary)' }}>ESTD. 1958</span>
           </div>
         </a>
 
@@ -106,9 +109,10 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
                 }}
                 style={{
                   ...styles.navLink,
-                  color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+                  color: isActive ? 'var(--accent-gold)' : navTextColor,
                   fontWeight: isActive ? '700' : '500',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  textShadow: isOverDarkHero ? '0 1px 4px rgba(0,0,0,0.5)' : 'none'
                 }}
                 className={`nav-link-btn ${isActive ? 'active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
@@ -122,7 +126,11 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
           {/* Theme Switcher Button */}
           <button
             onClick={toggleTheme}
-            style={styles.actionBtn}
+            style={{
+              ...styles.actionBtn,
+              backgroundColor: isOverDarkHero ? 'rgba(250, 248, 245, 0.12)' : 'var(--accent-gold-light)',
+              borderColor: isOverDarkHero ? 'rgba(250, 248, 245, 0.2)' : 'var(--border-light)'
+            }}
             className="theme-toggle-btn"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -130,7 +138,7 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
             {isDark ? (
               <Sun size={17} color="var(--accent-gold)" />
             ) : (
-              <Moon size={17} color="var(--text-primary)" />
+              <Moon size={17} color={navTextColor} />
             )}
           </button>
         </div>
@@ -141,19 +149,30 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
   // Mobile Header Navbar
   return (
     <>
-      <nav style={styles.mobileNav} className="glass navbar-dock-mobile" aria-label="Mobile navigation">
+      <nav
+        style={{
+          ...styles.mobileNav,
+          ...(isScrolled ? styles.mobileNavScrolled : styles.mobileNavNormal)
+        }}
+        className={`navbar-dock-mobile ${isScrolled ? 'scrolled glass' : 'transparent'}`}
+        aria-label="Mobile navigation"
+      >
         <a href="#home" style={{ ...styles.brand, textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>
           <img src="/assets/hemraj_logo.png" alt="Hemraj Logo" style={{ height: '30px', borderRadius: '4px' }} />
           <div style={styles.brandTextContainer}>
             <span style={{ ...styles.brandText, fontSize: '0.95rem' }}>HEMRAJ</span>
-            <span style={{ ...styles.brandSub, fontSize: '0.55rem' }}>ESTD. 1958</span>
+            <span style={{ ...styles.brandSub, fontSize: '0.55rem', color: isOverDarkHero ? 'rgba(250, 248, 245, 0.75)' : 'var(--text-secondary)' }}>ESTD. 1958</span>
           </div>
         </a>
 
         <div style={styles.actions}>
           <button
             onClick={toggleTheme}
-            style={styles.actionBtn}
+            style={{
+              ...styles.actionBtn,
+              backgroundColor: isOverDarkHero ? 'rgba(250, 248, 245, 0.12)' : 'var(--accent-gold-light)',
+              borderColor: isOverDarkHero ? 'rgba(250, 248, 245, 0.2)' : 'var(--border-light)'
+            }}
             className="theme-toggle-btn"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -161,7 +180,7 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
             {isDark ? (
               <Sun size={16} color="var(--accent-gold)" />
             ) : (
-              <Moon size={16} color="var(--text-primary)" />
+              <Moon size={16} color={navTextColor} />
             )}
           </button>
 
@@ -172,9 +191,9 @@ export default function Navbar({ currentSection, isDark, toggleTheme }) {
             aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
-              <X size={20} color="var(--text-primary)" />
+              <X size={20} color={navTextColor} />
             ) : (
-              <Menu size={20} color="var(--text-primary)" />
+              <Menu size={20} color={navTextColor} />
             )}
           </button>
         </div>
@@ -227,19 +246,23 @@ const styles = {
     alignItems: 'center',
     padding: '0 3rem',
     borderRadius: '24px',
-    transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
-    border: '1px solid var(--border-light)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)'
+    transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)'
   },
   navScrolled: {
     top: '12px',
     height: '60px',
-    backgroundColor: 'rgba(15, 9, 5, 0.85)',
-    borderColor: 'rgba(197, 160, 89, 0.2)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+    backgroundColor: 'var(--bg-glass)',
+    border: '1px solid var(--border-light)',
+    boxShadow: '0 16px 36px rgba(0, 0, 0, 0.08)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)'
   },
   navNormal: {
-    backgroundColor: 'rgba(250, 248, 245, 0.02)'
+    backgroundColor: 'transparent',
+    border: '1px solid rgba(250, 248, 245, 0.18)',
+    boxShadow: 'none',
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)'
   },
 
   // 3-way layout sections
@@ -328,8 +351,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    backgroundColor: 'rgba(250, 248, 245, 0.03)',
-    border: '1px solid rgba(250, 248, 245, 0.05)',
+    backgroundColor: 'var(--accent-gold-light)',
+    border: '1px solid var(--border-light)',
     transition: 'all 0.3s ease'
   },
 
@@ -346,7 +369,21 @@ const styles = {
     justifyContent: 'space-between',
     padding: '0 1.2rem',
     borderRadius: '16px',
-    border: '1px solid var(--border-light)'
+    transition: 'all 0.3s ease'
+  },
+  mobileNavNormal: {
+    backgroundColor: 'transparent',
+    border: '1px solid rgba(250, 248, 245, 0.18)',
+    boxShadow: 'none',
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)'
+  },
+  mobileNavScrolled: {
+    backgroundColor: 'var(--bg-glass)',
+    border: '1px solid var(--border-light)',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)'
   },
   brand: {
     display: 'flex',

@@ -328,7 +328,7 @@ export default function Products() {
   }, [selectedProduct]);
 
   return (
-    <section ref={containerRef} id="products" style={styles.scrollWrapper} className="dark-section" aria-labelledby="products-title">
+    <section ref={containerRef} id="products" style={styles.scrollWrapper} className="light-section" aria-labelledby="products-title">
       <div style={styles.stickyContainer} className="products-sticky-container">
         <div className="section-bg section-bg-products"></div>
         <div className="glow" style={{ top: '15%', left: '10%', animationDelay: '-1s' }}></div>
@@ -552,7 +552,7 @@ export default function Products() {
 const styles = {
   scrollWrapper: {
     position: 'relative',
-    backgroundColor: '#120B06', // Deep dark espresso background matching dark-section
+    backgroundColor: 'var(--bg-primary)',
     overflow: 'hidden'
   },
   stickyContainer: {
@@ -590,7 +590,7 @@ const styles = {
     fontFamily: 'var(--font-serif)',
     fontWeight: '400',
     lineHeight: 1.1,
-    color: '#FAF8F5'
+    color: 'var(--text-primary)'
   },
   divider: {
     width: '45px',
@@ -602,7 +602,7 @@ const styles = {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.95rem',
     lineHeight: 1.6,
-    color: 'rgba(250, 248, 245, 0.75)'
+    color: 'var(--text-secondary)'
   },
   tabs: {
     margin: '0.25rem 0'
@@ -613,7 +613,7 @@ const styles = {
   searchInput: {
     border: 'none',
     background: 'transparent',
-    color: '#FAF8F5',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.9rem',
     fontFamily: 'var(--font-sans)',

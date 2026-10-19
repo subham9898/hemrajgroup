@@ -126,7 +126,7 @@ export default function Timeline() {
         height: isMobile ? 'auto' : '250vh'
       }}
       id="story"
-      className="dark-section"
+      className="light-section"
     >
       {/* Sticky Window Layer */}
       <div style={styles.stickyWindow} className="sticky-window-timeline">
@@ -159,7 +159,7 @@ export default function Timeline() {
         }}></div>
 
         {/* Story Content Console Overlay */}
-        <div style={styles.contentOverlay}>
+        <div style={styles.contentOverlay} className="timeline-content-overlay">
           <div className="container scrolly-container-royale" style={styles.flexContainer}>
             
             {/* Left Section: Slot Machine Year Selector */}

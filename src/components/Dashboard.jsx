@@ -1,44 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Globe, Users, TrendingUp, Award } from 'lucide-react';
+import React from 'react';
+import { Globe, ArrowUpRight } from 'lucide-react';
 
-export default function Dashboard({ active }) {
-  const [percent, setPercent] = useState(0);
-  const [animate, setAnimate] = useState(false);
-
-  useEffect(() => {
-    if (active) {
-      setAnimate(true);
-      // Animate circular progress dial to 35%
-      let start = 0;
-      const end = 35;
-      const duration = 1500;
-      const stepTime = Math.abs(Math.floor(duration / end));
-      
-      const timer = setInterval(() => {
-        start += 1;
-        setPercent(start);
-        if (start >= end) {
-          clearInterval(timer);
-        }
-      }, stepTime);
-
-      return () => clearInterval(timer);
+export default function Dashboard() {
+  const handleNotifyClick = () => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [active]);
-
-  // SVG parameters for circular path
-  const radius = 80;
-  const strokeWidth = 10;
-  const circumference = 2 * Math.PI * radius;
-  // We want to fill the circumference proportional to the percentage (out of 100)
-  const strokeDashoffset = circumference - (percent / 100) * circumference;
+  };
 
   return (
-    <section id="dashboard" style={styles.section} className="dark-section">
+    <section id="dashboard" style={styles.section} className="light-section">
       <div className="section-bg section-bg-dashboard"></div>
-      <div className="container">
+      <div className="glow" style={{ top: '25%', left: '15%', animationDelay: '-2s' }}></div>
+      <div className="glow" style={{ bottom: '20%', right: '15%', animationDelay: '-4s' }}></div>
+
+      <div className="container" style={styles.container}>
         {/* Section Header */}
-        <div style={styles.header}>
+        <div style={styles.header} className="dashboard-header section-header">
           <p style={styles.kicker}>THE HORIZON</p>
           <h2 style={styles.title}>
             Global Export & <span style={{ color: 'var(--accent-gold)' }}>Dominance</span>
@@ -46,103 +25,64 @@ export default function Dashboard({ active }) {
           <div style={styles.divider}></div>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="dashboard-grid">
-          {/* Circular Dial Column */}
-          <div style={styles.dialCard} className="glass">
-            <h3 id="export-dial-title" style={styles.dialTitle}>Indian DORB Export Share</h3>
-            
-            <div style={styles.svgContainer}>
-              <svg
-                width="220"
-                height="220"
-                viewBox="0 0 220 220"
-                style={styles.svg}
-                role="meter"
-                aria-valuenow={percent}
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-labelledby="export-dial-title"
-              >
-                <title>35% Indian DORB Export Share</title>
-                {/* Track circle */}
-                <circle
-                  cx="110"
-                  cy="110"
-                  r={radius}
-                  fill="transparent"
-                  stroke="var(--border-light)"
-                  strokeWidth={strokeWidth}
-                />
-                {/* Progress circle */}
-                <circle
-                  cx="110"
-                  cy="110"
-                  r={radius}
-                  fill="transparent"
-                  stroke="var(--accent-gold)"
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  transform="rotate(-90 110 110)"
-                  style={{ transition: 'stroke-dashoffset 0.1s linear' }}
-                />
-              </svg>
-              
-              {/* Center Counter */}
-              <div style={styles.dialLabelBox}>
-                <span style={styles.dialNumber}>{percent}%</span>
-                <span style={styles.dialSubLabel}>Market Share</span>
-              </div>
-            </div>
-
-            <p style={styles.dialCaption}>
-              Controlled jointly by <strong>Hemraj Industries</strong> and M/s <strong>Radhashyam Industries</strong>, representing the top two exporting companies recognized by SEA (Solvent Extractors&apos; Association of India).
-            </p>
+        {/* Coming Soon Feature Console */}
+        <div style={styles.comingSoonCard} className="glass coming-soon-glass-card">
+          {/* Badge */}
+          <div style={styles.badgeWrapper}>
+            <span style={styles.comingSoonBadge} className="pulsing-badge">
+              <span style={styles.pulseDot}></span>
+              COMING SOON
+            </span>
           </div>
 
-          {/* Key Statistics Grid */}
-          <div style={styles.statsPanel}>
-            <div className="stats-grid">
-              
-              {/* Stat 1 */}
-              <div className="stat-card glass">
-                <div style={styles.statIconBox}>
-                  <Award size={20} color="var(--accent-gold)" />
-                </div>
-                <h4 style={styles.statVal}>10+ Years</h4>
-                <p style={styles.statLabel}>SEA Top Exporter Award Recipient</p>
-              </div>
-
-              {/* Stat 2 */}
-              <div className="stat-card glass">
-                <div style={styles.statIconBox}>
-                  <TrendingUp size={20} color="var(--accent-gold)" />
-                </div>
-                <h4 style={styles.statVal}>800+ Tons</h4>
-                <p style={styles.statLabel}>Combined Daily Processing Capacity</p>
-              </div>
-
-              {/* Stat 3 */}
-              <div className="stat-card glass">
-                <div style={styles.statIconBox}>
-                  <Users size={20} color="var(--accent-gold)" />
-                </div>
-                <h4 style={styles.statVal}>15,000+</h4>
-                <p style={styles.statLabel}>Farmer Families Sourced Directly</p>
-              </div>
-
-              {/* Stat 4 */}
-              <div className="stat-card glass">
-                <div style={styles.statIconBox}>
-                  <Globe size={20} color="var(--accent-gold)" />
-                </div>
-                <h4 style={styles.statVal}>12+ Countries</h4>
-                <p style={styles.statLabel}>APEDA Accredited Global Destinations</p>
-              </div>
-
+          <div style={styles.iconHeroBox}>
+            <div style={styles.globeRing} className="globe-ambient-ring">
+              <Globe size={46} color="var(--accent-gold)" strokeWidth={1.5} />
             </div>
+          </div>
+
+          <h3 style={styles.headline}>
+            International Trade Intelligence & Live Port Manifests
+          </h3>
+
+          <p style={styles.description}>
+            We are currently engineering our unified global trade dashboard — connecting real-time APEDA vessel tracking, Southeast Asian and Middle Eastern customs manifests, and Solvent Extractors&apos; Association (SEA) export quota metrics.
+          </p>
+
+          {/* Metric Teaser Capsules */}
+          <div style={styles.teasersGrid} className="coming-soon-teasers">
+            <div style={styles.teaserItem} className="glass">
+              <span style={styles.teaserMetric}>35%+</span>
+              <span style={styles.teaserTitle}>Indian DORB Volume</span>
+              <span style={styles.teaserSub}>SEA Top Exporter Benchmark</span>
+            </div>
+
+            <div style={styles.teaserItem} className="glass">
+              <span style={styles.teaserMetric}>12+ Ports</span>
+              <span style={styles.teaserTitle}>Global Destinations</span>
+              <span style={styles.teaserSub}>Direct Carrier Logistics</span>
+            </div>
+
+            <div style={styles.teaserItem} className="glass">
+              <span style={styles.teaserMetric}>Live API</span>
+              <span style={styles.teaserTitle}>Customs Manifests</span>
+              <span style={styles.teaserSub}>Digital Certificate Tracking</span>
+            </div>
+          </div>
+
+          {/* Action Row */}
+          <div style={styles.ctaBox}>
+            <button
+              onClick={handleNotifyClick}
+              style={styles.ctaBtn}
+              className="btn-primary"
+            >
+              <span>Connect with Corporate Desk</span>
+              <ArrowUpRight size={16} />
+            </button>
+            <span style={styles.ctaNote}>
+              Direct export inquiries handled via <a href="mailto:info@hemrajgroup.co.in" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}>info@hemrajgroup.co.in</a>
+            </span>
           </div>
         </div>
       </div>
@@ -152,13 +92,20 @@ export default function Dashboard({ active }) {
 
 const styles = {
   section: {
-    padding: '8rem 0',
+    padding: '7rem 0',
     backgroundColor: 'var(--bg-primary)',
-    position: 'relative'
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  container: {
+    maxWidth: '1050px',
+    margin: '0 auto',
+    position: 'relative',
+    zIndex: 2
   },
   header: {
     textAlign: 'center',
-    marginBottom: '5rem'
+    marginBottom: '3.5rem'
   },
   kicker: {
     fontFamily: 'var(--font-sans)',
@@ -180,92 +127,134 @@ const styles = {
     width: '60px',
     height: '2px',
     backgroundColor: 'var(--accent-gold)',
-    margin: '1.5rem auto 0'
+    margin: '1.25rem auto 0'
   },
-  dialCard: {
-    flex: '0 0 380px',
-    borderRadius: '28px',
-    padding: '3rem 2.5rem',
+  comingSoonCard: {
+    borderRadius: '32px',
+    padding: '4rem 3rem',
     textAlign: 'center',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     border: '1px solid var(--border-light)',
-    boxShadow: '0 15px 40px rgba(0,0,0,0.02)'
+    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.05)',
+    background: 'var(--bg-glass)'
   },
-  dialTitle: {
-    fontFamily: 'var(--font-serif)',
-    fontSize: '1.5rem',
-    fontWeight: '400',
-    color: 'var(--text-primary)',
-    marginBottom: '2rem'
+  badgeWrapper: {
+    marginBottom: '1.5rem'
   },
-  svgContainer: {
-    position: 'relative',
-    width: '220px',
-    height: '220px',
+  comingSoonBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.55rem',
+    fontFamily: 'var(--font-sans)',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+    color: 'var(--accent-gold-text, #875F1E)',
+    backgroundColor: 'var(--accent-gold-light)',
+    border: '1px solid rgba(197, 160, 89, 0.35)',
+    padding: '0.45rem 1.25rem',
+    borderRadius: '999px'
+  },
+  pulseDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    backgroundColor: 'var(--accent-gold)',
+    display: 'inline-block'
+  },
+  iconHeroBox: {
+    marginBottom: '1.75rem'
+  },
+  globeRing: {
+    width: '92px',
+    height: '92px',
+    borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '2rem'
+    backgroundColor: 'var(--accent-gold-light)',
+    border: '1px solid rgba(197, 160, 89, 0.3)',
+    margin: '0 auto',
+    boxShadow: '0 10px 30px rgba(197, 160, 89, 0.15)'
   },
-  svg: {
-    transform: 'scale(1)'
+  headline: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: 'clamp(1.6rem, 3.2vw, 2.3rem)',
+    fontWeight: '500',
+    color: 'var(--text-primary)',
+    maxWidth: '680px',
+    lineHeight: 1.25,
+    marginBottom: '1.25rem'
   },
-  dialLabelBox: {
-    position: 'absolute',
+  description: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: 'clamp(0.9rem, 1.6vw, 1.05rem)',
+    color: 'var(--text-secondary)',
+    maxWidth: '640px',
+    lineHeight: 1.7,
+    marginBottom: '2.5rem'
+  },
+  teasersGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '1.5rem',
+    width: '100%',
+    maxWidth: '820px',
+    marginBottom: '2.75rem'
+  },
+  teaserItem: {
+    padding: '1.6rem 1.2rem',
+    borderRadius: '20px',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
+    textAlign: 'center',
+    border: '1px solid var(--border-light)',
+    backgroundColor: 'rgba(250, 248, 245, 0.5)'
   },
-  dialNumber: {
+  teaserMetric: {
     fontFamily: 'var(--font-serif)',
-    fontSize: '3.2rem',
+    fontSize: '1.85rem',
     fontWeight: '700',
-    color: 'var(--text-primary)',
-    lineHeight: 1
+    color: 'var(--accent-gold)',
+    lineHeight: 1,
+    marginBottom: '0.4rem'
   },
-  dialSubLabel: {
-    fontFamily: 'var(--font-sans)',
-    fontSize: '9px',
-    fontWeight: '700',
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    color: 'var(--text-secondary)',
-    marginTop: '4px'
-  },
-  dialCaption: {
+  teaserTitle: {
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
-    lineHeight: 1.6,
-    color: 'var(--text-secondary)'
-  },
-  statsPanel: {
-    flex: '1 1 0',
-    width: '100%'
-  },
-  statIconBox: {
-    width: '38px',
-    height: '38px',
-    borderRadius: '50%',
-    backgroundColor: 'var(--accent-gold-light)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '1.2rem'
-  },
-  statVal: {
-    fontFamily: 'var(--font-serif)',
-    fontSize: '2rem',
     fontWeight: '600',
     color: 'var(--text-primary)',
-    marginBottom: '0.3rem',
-    lineHeight: 1
+    marginBottom: '0.2rem'
   },
-  statLabel: {
+  teaserSub: {
     fontFamily: 'var(--font-sans)',
+    fontSize: '0.72rem',
+    color: 'var(--text-secondary)'
+  },
+  ctaBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.9rem'
+  },
+  ctaBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    padding: '0.85rem 2rem',
+    borderRadius: '999px',
+    cursor: 'pointer',
     fontSize: '0.85rem',
-    color: 'var(--text-secondary)',
-    lineHeight: 1.4
+    fontWeight: '600',
+    letterSpacing: '0.04em'
+  },
+  ctaNote: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: '0.8rem',
+    color: 'var(--text-secondary)'
   }
 };
