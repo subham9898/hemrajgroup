@@ -49,54 +49,59 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Intersection Observer to trace which section is active
+  // ScrollTrigger to accurately trace which section is active
   useEffect(() => {
-    const sections = ['home', 'story', 'products', 'gallery', 'contact'];
-    const observers = [];
+    const sections = [
+      { id: 'home', selector: '#home' },
+      { id: 'story', selector: '#story' },
+      { id: 'products', selector: '#products' },
+      { id: 'gallery', selector: '#gallery' },
+      { id: 'contact', selector: '#contact' }
+    ];
 
-    sections.forEach((secId) => {
-      const element = document.getElementById(secId);
-      if (!element) return;
+    const triggers = [];
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            // Safeguard: if at scroll position 0, only 'home' can be active
-            if (window.scrollY === 0) {
-              setCurrentSection('home');
-              const homeEl = document.getElementById('home');
-              if (homeEl) {
-                homeEl.classList.add('active');
-                const homeRevealLines = homeEl.querySelectorAll('.reveal-line');
-                homeRevealLines.forEach((line) => line.classList.add('active'));
-              }
-              return;
+    // Safeguard for very top
+    triggers.push(
+      ScrollTrigger.create({
+        start: 0,
+        end: () => window.innerHeight * 0.4,
+        onToggle: (self) => {
+          if (self.isActive) {
+            setCurrentSection('home');
+            const homeEl = document.getElementById('home');
+            if (homeEl) {
+              homeEl.classList.add('active');
+              const homeRevealLines = homeEl.querySelectorAll('.reveal-line');
+              homeRevealLines.forEach((line) => line.classList.add('active'));
             }
-
-            setCurrentSection(secId);
-            
-            // Add scroll-reveal trigger active class
-            entry.target.classList.add('active');
-            
-            // Find nested reveal-line elements and trigger their line animation
-            const revealLines = entry.target.querySelectorAll('.reveal-line');
-            revealLines.forEach((line) => line.classList.add('active'));
           }
-        },
-        {
-          root: null,
-          rootMargin: '-30% 0px -40% 0px', // Trigger when section occupies center window
-          threshold: 0
         }
-      );
+      })
+    );
 
-      observer.observe(element);
-      observers.push({ observer, element });
+    sections.forEach(({ id, selector }) => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+
+      triggers.push(
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 45%',
+          end: 'bottom 45%',
+          onToggle: (self) => {
+            if (self.isActive) {
+              setCurrentSection(id);
+              el.classList.add('active');
+              const revealLines = el.querySelectorAll('.reveal-line');
+              revealLines.forEach((line) => line.classList.add('active'));
+            }
+          }
+        })
+      );
     });
 
-    return () => {
-      observers.forEach(({ observer, element }) => observer.unobserve(element));
-    };
+    return () => triggers.forEach((t) => t.kill());
   }, []);
 
   // Initialize Lenis Smooth Scroll and connect to GSAP ScrollTrigger

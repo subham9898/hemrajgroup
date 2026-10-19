@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, Eye, X, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { Search, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -13,7 +13,6 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
   const [canHover, setCanHover] = useState(false);
 
   useEffect(() => {
-    // Only enable mouse tilt on non-touch devices with fine pointers
     const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
     setCanHover(mq.matches);
     const handler = (e) => setCanHover(e.matches);
@@ -29,8 +28,7 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     
-    // Calculate rotation angle (-8 to 8 degrees)
-    const maxTilt = 8;
+    const maxTilt = 7;
     const rY = ((mouseX - width / 2) / (width / 2)) * maxTilt;
     const rX = -((mouseY - height / 2) / (height / 2)) * maxTilt;
     
@@ -73,12 +71,10 @@ function TiltCard({ children, bgImage, onClick, animationDelay }) {
   );
 }
 
-export default function Products() {
+export default function Products({ active }) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   
   const containerRef = useRef(null);
@@ -203,112 +199,76 @@ export default function Products() {
     return matchesFilter && matchesSearch;
   });
 
-  // Track horizontal scroll state for mobile indicator & arrows
-  const updateScrollState = useCallback(() => {
-    const el = trackContainerRef.current;
-    if (!el) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanScrollLeft(scrollLeft > 15);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
+  // Stop Pause Scrolling (Scrollytelling Sticky scrub through products)
+  useGSAP(() => {
+    if (!containerRef.current || !trackRef.current || !trackContainerRef.current) return;
 
-    // Calculate active card index based on scroll position
-    if (trackRef.current && trackRef.current.children.length > 0) {
-      const cards = Array.from(trackRef.current.children);
-      let closestIdx = 0;
-      let minDiff = Infinity;
-      cards.forEach((card, idx) => {
-        const diff = Math.abs(card.offsetLeft - scrollLeft);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestIdx = idx;
+    const calcMaxMove = () => {
+      const track = trackRef.current;
+      const container = trackContainerRef.current;
+      if (!track || !container) return 0;
+      return Math.max(0, track.scrollWidth - container.offsetWidth);
+    };
+
+    const st = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.4,
+      onUpdate: (self) => {
+        const progress = self.progress;
+        const maxMove = calcMaxMove();
+        
+        if (trackRef.current) {
+          if (maxMove > 0) {
+            gsap.set(trackRef.current, { x: -progress * maxMove });
+          } else {
+            gsap.set(trackRef.current, { x: 0 });
+          }
         }
-      });
-      setActiveCardIndex(closestIdx);
-    }
-  }, []);
 
-  useEffect(() => {
-    const el = trackContainerRef.current;
-    if (!el) return;
-    el.addEventListener('scroll', updateScrollState, { passive: true });
-    updateScrollState();
-    return () => el.removeEventListener('scroll', updateScrollState);
-  }, [updateScrollState, filteredProducts.length]);
-
-  const scrollTrack = (direction) => {
-    const el = trackContainerRef.current;
-    if (!el) return;
-    const amount = Math.max(260, el.clientWidth * 0.75);
-    el.scrollBy({
-      left: direction === 'left' ? -amount : amount,
-      behavior: 'smooth'
+        const total = filteredProducts.length;
+        if (total > 0) {
+          const clamped = Math.max(0, Math.min(total - 1, Math.floor(progress * total)));
+          setActiveCardIndex(clamped);
+        }
+      }
     });
-  };
 
-  const scrollToCard = (index) => {
-    if (!trackRef.current) return;
-    const cards = trackRef.current.children;
-    if (cards[index]) {
-      cards[index].scrollIntoView({
-        behavior: 'smooth',
-        inline: 'start',
-        block: 'nearest'
-      });
-      setActiveCardIndex(index);
+    return () => st.kill();
+  }, { scope: containerRef, dependencies: [filteredProducts.length, activeFilter, searchQuery] });
+
+  // Jump to specific card by scrolling the scrollytelling container
+  const jumpToCard = (idx) => {
+    setActiveCardIndex(idx);
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const total = Math.max(1, filteredProducts.length - 1);
+      const progress = idx / total;
+      const scrollAmount = window.scrollY + rect.top + progress * (rect.height - window.innerHeight);
+      window.scrollTo({ top: scrollAmount, behavior: 'smooth' });
     }
   };
 
   const handleFilterChange = (catId) => {
     setActiveFilter(catId);
-    if (trackContainerRef.current) {
-      trackContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    if (trackRef.current) {
+      gsap.set(trackRef.current, { x: 0 });
     }
+    setActiveCardIndex(0);
+    // Smooth reset scroll position if user has scrolled inside section
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.top < -50) {
+        window.scrollTo({ top: window.scrollY + rect.top, behavior: 'smooth' });
+      }
+    }
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
   };
 
-  useGSAP(() => {
-    const mm = gsap.matchMedia();
-
-    // GSAP Pin + Horizontal Scroll only for desktop screens (> 900px)
-    mm.add('(min-width: 901px)', () => {
-      if (!containerRef.current || !trackRef.current || !trackContainerRef.current) return;
-
-      const scrollTrigger = ScrollTrigger.create({
-        trigger: containerRef.current,
-        start: 'top top',
-        end: () => {
-          if (!trackRef.current || !trackContainerRef.current) return '+0';
-          const move = trackRef.current.scrollWidth - trackContainerRef.current.offsetWidth;
-          return `+=${Math.max(0, move)}`;
-        },
-        scrub: 0.2, // fast response so page scroll continues to next section immediately
-        pin: true,
-        invalidateOnRefresh: true,
-        animation: gsap.to(trackRef.current, {
-          x: () => {
-            if (!trackRef.current || !trackContainerRef.current) return 0;
-            const move = trackRef.current.scrollWidth - trackContainerRef.current.offsetWidth;
-            return -Math.max(0, move);
-          },
-          ease: 'none'
-        })
-      });
-
-      return () => scrollTrigger.kill();
-    });
-
-    return () => mm.revert();
-  }, { scope: containerRef, dependencies: [filteredProducts.length] });
-
-  // Dynamic layout refresh when filters or search queries change
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
-      updateScrollState();
-    }, 120);
-    return () => clearTimeout(timer);
-  }, [activeFilter, searchQuery, filteredProducts.length, updateScrollState]);
-
-  // Modal accessibility & body scroll lock
+  // Keyboard navigation & modal Escape handling
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && selectedProduct) {
@@ -328,158 +288,181 @@ export default function Products() {
   }, [selectedProduct]);
 
   return (
-    <section ref={containerRef} id="products" style={styles.scrollWrapper} className="light-section" aria-labelledby="products-title">
-      <div style={styles.stickyContainer} className="products-sticky-container">
+    <section
+      ref={containerRef}
+      id="products"
+      style={styles.scrollySection}
+      className={`scrolly-products-section light-section reveal-section ${active ? 'active' : ''}`}
+      aria-labelledby="products-title"
+    >
+      {/* Sticky Single-Frame Window (Pauses in 1 frame while user scrolls through products) */}
+      <div style={styles.stickyWindow} className="products-sticky-window">
         <div className="section-bg section-bg-products"></div>
         <div className="glow" style={{ top: '15%', left: '10%', animationDelay: '-1s' }}></div>
         <div className="glow" style={{ bottom: '20%', right: '10%', animationDelay: '-3s' }}></div>
 
-        <div style={styles.splitLayout} className="products-split-layout">
-          {/* Left Sidebar on desktop / Header controls on mobile */}
-          <div style={styles.sidebar} className="products-sidebar">
-            <p style={styles.kicker}>THE HARVEST</p>
-            <h2 id="products-title" style={styles.title} className="products-section-title">
-              Our Product <span style={{ color: 'var(--accent-gold)' }}>Showroom</span>
-            </h2>
-            <div style={styles.divider}></div>
-            <p style={styles.sidebarDesc} className="products-sidebar-desc">
-              Discover six decades of processing mastery locked into our premium food oils, grain products, and exports.
-            </p>
-
-            {/* Filter Tabs */}
-            <div style={styles.tabs} className="category-tabs" role="group" aria-label="Filter products by category">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleFilterChange(cat.id)}
-                  className={`category-tab-btn ${activeFilter === cat.id ? 'active' : ''}`}
-                  style={{
-                    backgroundColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'transparent',
-                    color: activeFilter === cat.id ? 'var(--bg-primary)' : 'var(--text-primary)',
-                    borderColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'var(--border-light)'
-                  }}
-                  aria-pressed={activeFilter === cat.id}
-                >
-                  <span>{cat.label}</span>
-                  <span className="tab-count-badge">{cat.count}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Search Box */}
-            <div style={styles.searchBox} className="glass products-search-box">
-              <Search size={18} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-              <input
-                id="catalog-search"
-                name="search"
-                type="text"
-                placeholder="Search products or specs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={styles.searchInput}
-                className="products-search-input"
-                aria-label="Search product catalog"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="products-search-clear"
-                  aria-label="Clear search query"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-
-            {/* Mobile Carousel Controls & Item Counter */}
-            <div className="products-mobile-controls">
-              <div className="products-mobile-count">
-                <SlidersHorizontal size={13} />
-                <span>{filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'}</span>
+        <div className="container products-frame-container" style={styles.container}>
+          <div style={styles.splitLayout} className="products-split-layout">
+            {/* Controls Sidebar on Desktop / Compact Header on Mobile */}
+            <div style={styles.sidebar} className="products-sidebar">
+              <div className="products-header-top">
+                <p style={styles.kicker}>THE HARVEST</p>
+                <h2 id="products-title" style={styles.title} className="products-section-title">
+                  Our Product <span style={{ color: 'var(--accent-gold)' }}>Showroom</span>
+                </h2>
+                <div style={styles.divider} className="products-divider"></div>
+                <p style={styles.sidebarDesc} className="products-sidebar-desc">
+                  Discover six decades of processing mastery locked into our premium food oils, grain products, and exports.
+                </p>
               </div>
-              <div className="products-mobile-nav">
-                <button
-                  onClick={() => scrollTrack('left')}
-                  disabled={!canScrollLeft}
-                  className="products-mobile-nav-btn"
-                  aria-label="Previous product"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={() => scrollTrack('right')}
-                  disabled={!canScrollRight}
-                  className="products-mobile-nav-btn"
-                  aria-label="Next product"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Panel - Horizontal Scrubbing Track on desktop / Smooth Swipe on mobile */}
-          <div ref={trackContainerRef} style={styles.trackContainer} className="products-track-container">
-            <div ref={trackRef} style={styles.sliderTrack} className="products-slider-track">
-              {filteredProducts.map((prod, idx) => (
-                <TiltCard
-                  key={prod.id}
-                  bgImage={prod.image}
-                  onClick={() => setSelectedProduct(prod)}
-                  animationDelay={`${Math.min(idx * 0.06, 0.4)}s`}
-                >
-                  <div style={styles.cardScrim} className="cardScrim"></div>
-                  <div style={styles.cardContent} className="products-card-content">
-                    <span style={styles.cardCategory} className="products-card-badge">
-                      {prod.category.toUpperCase()}
-                    </span>
-                    <h3 style={styles.cardName} className="products-card-name">
-                      {prod.name}
-                    </h3>
-                    <p style={styles.cardDesc} className="products-card-desc">
-                      {prod.desc.substring(0, 80)}...
-                    </p>
-                    
-                    <span style={styles.viewLink} className="product-card-action">
-                      <Eye size={13} />
-                      SPECS SHEET
-                    </span>
-                  </div>
-                </TiltCard>
-              ))}
-
-              {filteredProducts.length === 0 && (
-                <div style={styles.noResults} className="products-empty-state glass">
-                  <p style={{ margin: 0, fontWeight: 600, color: '#FAF8F5', fontSize: '1.05rem' }}>
-                    No products found
-                  </p>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(250, 248, 245, 0.7)' }}>
-                    No matches for &ldquo;{searchQuery}&rdquo; in this category.
-                  </span>
+              {/* Category Filter Tabs */}
+              <div style={styles.tabs} className="category-tabs" role="group" aria-label="Filter products by category">
+                {categories.map((cat) => (
                   <button
-                    onClick={() => { setActiveFilter('all'); setSearchQuery(''); }}
-                    className="reset-filters-btn"
+                    key={cat.id}
+                    onClick={() => handleFilterChange(cat.id)}
+                    className={`category-tab-btn ${activeFilter === cat.id ? 'active' : ''}`}
+                    style={{
+                      backgroundColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'transparent',
+                      color: activeFilter === cat.id ? '#120B06' : 'var(--text-primary)',
+                      borderColor: activeFilter === cat.id ? 'var(--accent-gold)' : 'var(--border-light)'
+                    }}
+                    aria-pressed={activeFilter === cat.id}
                   >
-                    Reset All Filters
+                    <span>{cat.label}</span>
+                    <span className="tab-count-badge">{cat.count}</span>
                   </button>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Pagination Dots */}
-            {filteredProducts.length > 1 && (
-              <div className="products-mobile-dots">
-                {filteredProducts.map((_, dotIdx) => (
-                  <button
-                    key={dotIdx}
-                    onClick={() => scrollToCard(dotIdx)}
-                    className={`products-mobile-dot ${activeCardIndex === dotIdx ? 'active' : ''}`}
-                    aria-label={`Go to product ${dotIdx + 1}`}
-                  />
                 ))}
               </div>
-            )}
+
+              {/* Search Box */}
+              <div style={styles.searchBox} className="glass products-search-box">
+                <Search size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+                <input
+                  id="catalog-search"
+                  name="search"
+                  type="text"
+                  placeholder="Search products or specs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={styles.searchInput}
+                  className="products-search-input"
+                  aria-label="Search product catalog"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="products-search-clear"
+                    aria-label="Clear search query"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Counter and Navigation Controls */}
+              <div className="products-controls-bar" style={styles.controlsBar}>
+                <div style={styles.counterBadge} className="products-counter-badge">
+                  <span style={{ color: 'var(--accent-gold)', fontWeight: '700' }}>
+                    {String(filteredProducts.length > 0 ? activeCardIndex + 1 : 0).padStart(2, '0')}
+                  </span>
+                  <span style={{ opacity: 0.4, margin: '0 6px' }}>/</span>
+                  <span style={{ opacity: 0.7 }}>
+                    {String(filteredProducts.length).padStart(2, '0')}
+                  </span>
+                </div>
+
+                <div style={styles.navButtons} className="products-nav-buttons">
+                  <button
+                    onClick={() => jumpToCard(Math.max(0, activeCardIndex - 1))}
+                    disabled={activeCardIndex === 0}
+                    style={styles.navBtn}
+                    className="products-nav-arrow"
+                    aria-label="Previous product"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={() => jumpToCard(Math.min(filteredProducts.length - 1, activeCardIndex + 1))}
+                    disabled={activeCardIndex >= filteredProducts.length - 1}
+                    style={styles.navBtn}
+                    className="products-nav-arrow"
+                    aria-label="Next product"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Cards Track Container */}
+            <div
+              ref={trackContainerRef}
+              style={styles.trackContainer}
+              className="products-track-container"
+            >
+              <div ref={trackRef} style={styles.sliderTrack} className="products-slider-track">
+                {filteredProducts.map((prod, idx) => (
+                  <TiltCard
+                    key={prod.id}
+                    bgImage={prod.image}
+                    onClick={() => setSelectedProduct(prod)}
+                    animationDelay={`${Math.min(idx * 0.05, 0.3)}s`}
+                  >
+                    <div style={styles.cardScrim} className="cardScrim"></div>
+                    <div style={styles.cardContent} className="products-card-content">
+                      <span style={styles.cardCategory} className="products-card-badge">
+                        {prod.category.toUpperCase()}
+                      </span>
+                      <h3 style={styles.cardName} className="products-card-name">
+                        {prod.name}
+                      </h3>
+                      <p style={styles.cardDesc} className="products-card-desc">
+                        {prod.desc.substring(0, 75)}...
+                      </p>
+                      
+                      <span style={styles.viewLink} className="product-card-action">
+                        <Eye size={13} />
+                        SPECS SHEET
+                      </span>
+                    </div>
+                  </TiltCard>
+                ))}
+
+                {filteredProducts.length === 0 && (
+                  <div style={styles.noResults} className="products-empty-state glass">
+                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
+                      No products found
+                    </p>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      No matches for &ldquo;{searchQuery}&rdquo; in this category.
+                    </span>
+                    <button
+                      onClick={() => { setActiveFilter('all'); setSearchQuery(''); }}
+                      className="reset-filters-btn"
+                    >
+                      Reset All Filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Mobile Pagination Dots */}
+          {filteredProducts.length > 1 && (
+            <div className="products-mobile-dots">
+              {filteredProducts.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  onClick={() => jumpToCard(dotIdx)}
+                  className={`products-mobile-dot ${activeCardIndex === dotIdx ? 'active' : ''}`}
+                  aria-label={`Go to product ${dotIdx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -550,89 +533,167 @@ export default function Products() {
 }
 
 const styles = {
-  scrollWrapper: {
+  scrollySection: {
+    height: '250vh',
     position: 'relative',
-    backgroundColor: 'var(--bg-primary)',
-    overflow: 'hidden'
+    backgroundColor: 'var(--bg-primary)'
   },
-  stickyContainer: {
+  stickyWindow: {
+    position: 'sticky',
+    top: 0,
     height: '100vh',
+    maxHeight: '100vh',
     width: '100%',
-    position: 'relative',
+    overflow: 'hidden',
+    boxSizing: 'border-box',
     display: 'flex',
     alignItems: 'center',
-    overflow: 'hidden'
+    justifyContent: 'center',
+    padding: 'clamp(4.5rem, 7vh, 5.5rem) 1.5rem clamp(1rem, 2vh, 1.5rem)'
+  },
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    height: '100%',
+    maxHeight: '100%',
+    width: '100%',
+    maxWidth: '1380px',
+    margin: '0 auto',
+    zIndex: 2,
+    position: 'relative'
   },
   splitLayout: {
     display: 'flex',
     width: '100%',
     height: '100%',
+    maxHeight: '100%',
     alignItems: 'center',
+    gap: 'clamp(1.5rem, 3vw, 3rem)',
     zIndex: 2,
-    position: 'relative'
+    position: 'relative',
+    minHeight: 0
   },
   sidebar: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
+    width: 'clamp(280px, 24vw, 340px)',
+    flexShrink: 0,
+    gap: 'clamp(0.4rem, 1.2vh, 0.9rem)',
     zIndex: 3
   },
   kicker: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.8rem',
+    fontSize: '0.75rem',
     fontWeight: '700',
-    letterSpacing: '0.25em',
+    letterSpacing: '0.22em',
     color: 'var(--accent-gold)',
     textTransform: 'uppercase',
-    marginBottom: '0.2rem'
+    margin: '0 0 0.15rem 0'
   },
   title: {
     fontFamily: 'var(--font-serif)',
+    fontSize: 'clamp(1.7rem, 3.2vh, 2.4rem)',
     fontWeight: '400',
     lineHeight: 1.1,
-    color: 'var(--text-primary)'
+    color: 'var(--text-primary)',
+    margin: 0
   },
   divider: {
     width: '45px',
     height: '2px',
     backgroundColor: 'var(--accent-gold)',
-    margin: '0.2rem 0'
+    margin: '0.35rem 0'
   },
   sidebarDesc: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.95rem',
-    lineHeight: 1.6,
-    color: 'var(--text-secondary)'
+    fontSize: '0.85rem',
+    lineHeight: 1.5,
+    color: 'var(--text-secondary)',
+    margin: 0
   },
   tabs: {
-    margin: '0.25rem 0'
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.4rem',
+    margin: '0.2rem 0'
   },
   searchBox: {
-    width: '100%'
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem 0.85rem',
+    borderRadius: '12px',
+    border: '1px solid var(--border-light)'
   },
   searchInput: {
     border: 'none',
     background: 'transparent',
     color: 'var(--text-primary)',
     outline: 'none',
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
     fontFamily: 'var(--font-sans)',
     width: '100%'
+  },
+  controlsBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: '0.2rem'
+  },
+  counterBadge: {
+    fontFamily: 'var(--font-sans)',
+    fontSize: '0.85rem',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0.3rem 0.8rem',
+    borderRadius: '100px',
+    background: 'var(--bg-glass)',
+    border: '1px solid var(--border-light)'
+  },
+  navButtons: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem'
+  },
+  navBtn: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    border: '1px solid var(--border-light)',
+    background: 'var(--bg-glass)',
+    color: 'var(--text-primary)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.25s ease'
   },
   trackContainer: {
     flex: '1 1 auto',
     height: '100%',
+    maxHeight: '100%',
+    minHeight: 0,
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative'
   },
   sliderTrack: {
     display: 'flex',
+    gap: '1.5rem',
+    alignItems: 'center',
+    width: 'max-content',
+    padding: '0.5rem 0.25rem',
     willChange: 'transform'
   },
   cardScrim: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(to top, rgba(18, 11, 6, 0.96) 0%, rgba(18, 11, 6, 0.45) 55%, rgba(18, 11, 6, 0.15) 100%)',
+    background: 'linear-gradient(to top, rgba(12, 8, 5, 0.95) 0%, rgba(12, 8, 5, 0.45) 55%, rgba(12, 8, 5, 0.1) 100%)',
     zIndex: 1,
     transition: 'opacity 0.4s ease'
   },
@@ -644,96 +705,134 @@ const styles = {
     zIndex: 2,
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.5rem',
-    transform: 'translateZ(30px)' // Tilt effect depth pop
+    gap: '0.35rem',
+    padding: '1.4rem 1.25rem',
+    transform: 'translateZ(30px)'
   },
   cardCategory: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.7rem',
+    fontSize: '0.68rem',
     fontWeight: '700',
     color: 'var(--accent-gold)',
-    letterSpacing: '0.15em'
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase'
   },
   cardName: {
     fontFamily: 'var(--font-serif)',
-    fontSize: '1.45rem',
+    fontSize: '1.35rem',
     color: '#FAF8F5',
-    lineHeight: 1.2
+    lineHeight: 1.2,
+    margin: 0
   },
   cardDesc: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.8rem',
-    color: 'rgba(250, 248, 245, 0.7)',
-    lineHeight: 1.5
+    fontSize: '0.78rem',
+    color: 'rgba(250, 248, 245, 0.75)',
+    lineHeight: 1.45,
+    margin: 0
   },
   viewLink: {
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.7rem',
+    gap: '0.4rem',
+    fontSize: '0.68rem',
     color: 'var(--accent-gold)',
     fontWeight: '700',
-    letterSpacing: '0.15em',
-    marginTop: '0.5rem'
+    letterSpacing: '0.12em',
+    marginTop: '0.35rem',
+    textTransform: 'uppercase'
   },
   noResults: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '1rem',
-    color: 'var(--text-secondary)'
+    fontSize: '0.95rem',
+    color: 'var(--text-secondary)',
+    padding: '2rem 3rem',
+    borderRadius: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.5rem'
   },
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: 'rgba(10, 6, 4, 0.85)',
+    backgroundColor: 'rgba(10, 6, 4, 0.9)',
     zIndex: 10000,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)'
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    padding: '1.5rem'
   },
   modalContent: {
     width: '100%',
-    position: 'relative'
+    maxWidth: '850px',
+    position: 'relative',
+    borderRadius: '24px',
+    padding: '2.5rem',
+    backgroundColor: 'var(--bg-glass)',
+    border: '1px solid var(--border-light)'
   },
   closeBtn: {
-    cursor: 'pointer'
+    position: 'absolute',
+    top: '1.5rem',
+    right: '1.5rem',
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-primary)',
+    cursor: 'pointer',
+    opacity: 0.8,
+    transition: 'opacity 0.2s'
   },
   modalGrid: {
-    display: 'flex'
+    display: 'flex',
+    gap: '2.5rem'
   },
-  modalLeft: {},
+  modalLeft: {
+    flex: '1 1 50%'
+  },
   modalTitle: {
     fontFamily: 'var(--font-serif)',
+    fontSize: '1.8rem',
     color: 'var(--text-primary)',
-    lineHeight: 1.1
+    lineHeight: 1.15,
+    margin: '0.8rem 0 0.5rem 0'
   },
   modalDesc: {
     fontFamily: 'var(--font-sans)',
+    fontSize: '0.9rem',
     color: 'var(--text-secondary)',
-    lineHeight: 1.7
+    lineHeight: 1.6,
+    margin: 0
   },
-  modalRight: {},
+  modalRight: {
+    flex: '1 1 50%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center'
+  },
   specsTitle: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.8rem',
+    fontSize: '0.78rem',
     fontWeight: '700',
     color: 'var(--text-primary)',
     letterSpacing: '0.15em',
-    marginBottom: '1.2rem'
+    marginBottom: '1rem',
+    textTransform: 'uppercase'
   },
   specsList: {
     listStyle: 'none',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.8rem',
+    gap: '0.75rem',
     padding: 0,
-    margin: 0
+    margin: '0 0 1.5rem 0'
   },
   specItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.8rem',
+    gap: '0.75rem',
     fontFamily: 'var(--font-sans)',
     fontSize: '0.85rem',
     color: 'var(--text-secondary)'

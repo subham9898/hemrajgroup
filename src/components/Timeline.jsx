@@ -61,8 +61,18 @@ export default function Timeline() {
     }
   ];
 
+  const jumpToMilestone = (idx) => {
+    setActiveStep(idx);
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const nodeProgress = idx / Math.max(1, milestones.length - 1);
+      const scrollAmount = window.scrollY + rect.top + nodeProgress * (rect.height - window.innerHeight);
+      window.scrollTo({ top: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   useGSAP(() => {
-    if (!containerRef.current || isMobile) return;
+    if (!containerRef.current) return;
 
     // Track scroll triggers for active steps and progress calculation
     const st = ScrollTrigger.create({
@@ -116,14 +126,14 @@ export default function Timeline() {
       st.kill();
       tween.kill();
     };
-  }, [isMobile, activeStep, milestones.length]);
+  }, [activeStep, milestones.length]);
 
   return (
     <div
       ref={containerRef}
       style={{
         ...styles.scrollContainer,
-        height: isMobile ? 'auto' : '250vh'
+        height: isMobile ? '220vh' : '250vh'
       }}
       id="story"
       className="light-section"
@@ -247,6 +257,21 @@ export default function Timeline() {
             <div style={styles.rightContentWrapper} className="right-content-wrapper-royale">
               <div style={styles.floatingCard} className="glass scrolly-card royale-card">
                 <span style={styles.kicker}>THE HERITAGE LEGACY</span>
+
+                {/* Mobile Year Pill Strip */}
+                <div className="mobile-milestone-strip">
+                  {milestones.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => jumpToMilestone(idx)}
+                      className={`mobile-year-pill ${activeStep === idx ? 'active' : ''}`}
+                      aria-label={`Jump to ${item.year}`}
+                    >
+                      {item.year.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
                 
                 {/* Animated Inner Content based on activeStep */}
                 <div key={activeStep} className="scrolly-card-inner">
@@ -267,7 +292,7 @@ export default function Timeline() {
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => setActiveStep(idx)}
+                      onClick={() => jumpToMilestone(idx)}
                       aria-label={`Switch to ${item.year}: ${item.title}`}
                       style={{
                         ...styles.dot,
